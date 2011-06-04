@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Bouml (http://bouml.free.fr/) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="559" height="482" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g>
+	<rect fill="#dcdcdc" stroke="black" stroke-width="1" stroke-opacity="1" x="316" y="235" width="221" height="235" />
+	<polygon fill="#dcdcdc" stroke="black" stroke-opacity="1" points="316,235 326,225 547,225 547,460 537,470 537,235 316,235" />
+	<line stroke="black" stroke-opacity="1" x1="537" y1="235" x2="547" y2="225" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="427" y="249">:Database Server</text>
+</g>
+<g>
+	<rect fill="#dcdcdc" stroke="black" stroke-width="1" stroke-opacity="1" x="11" y="23" width="233" height="352" />
+	<polygon fill="#dcdcdc" stroke="black" stroke-opacity="1" points="11,23 21,13 254,13 254,365 244,375 244,23 11,23" />
+	<line stroke="black" stroke-opacity="1" x1="244" y1="23" x2="254" y2="13" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="128" y="37">:Application Server</text>
+</g>
+<g>
+	<rect fill="#dcdcdc" stroke="black" stroke-width="1" stroke-opacity="1" x="334" y="276" width="176" height="177" />
+	<polygon fill="#dcdcdc" stroke="black" stroke-opacity="1" points="334,276 344,266 520,266 520,443 510,453 510,276 334,276" />
+	<line stroke="black" stroke-opacity="1" x1="510" y1="276" x2="520" y2="266" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="422" y="290">:Relational DBMS</text>
+</g>
+<g>
+	<rect fill="#dcdcdc" stroke="black" stroke-width="1" stroke-opacity="1" x="319" y="23" width="216" height="161" />
+	<polygon fill="#dcdcdc" stroke="black" stroke-opacity="1" points="319,23 329,13 545,13 545,174 535,184 535,23 319,23" />
+	<line stroke="black" stroke-opacity="1" x1="535" y1="23" x2="545" y2="13" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="427" y="37">:Cache Server</text>
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="254" y1="154" x2="318" y2="133" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="254" y1="256" x2="315" y2="286" />
+</g>
+<g>
+	<rect fill="#dcdcdc" stroke="black" stroke-width="1" stroke-opacity="1" x="37" y="68" width="182" height="290" />
+	<polygon fill="#dcdcdc" stroke="black" stroke-opacity="1" points="37,68 47,58 229,58 229,348 219,358 219,68 37,68" />
+	<line stroke="black" stroke-opacity="1" x1="219" y1="68" x2="229" y2="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="128" y="82">:Ruby</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="494" y="384" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="352" y="438" width="145" height="3" />
+	<rect fill="#c0ffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="348" y="380" width="146" height="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="421" y="403">&lt;&lt;artifact&gt;&gt;</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="421" y="432">Graffiti Triggers</text>
+	<polygon fill="none" stroke="black" stroke-opacity="1" points="471,384 484,384 484,390 490,390 490,411 471,411 471,384" />
+	<line stroke="black" stroke-opacity="1" x1="484" y1="384" x2="490" y2="390" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="494" y="310" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="352" y="364" width="145" height="3" />
+	<rect fill="#c0ffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="348" y="306" width="146" height="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="421" y="329">&lt;&lt;artifact&gt;&gt;</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="421" y="358">Relational Data</text>
+	<polygon fill="none" stroke="black" stroke-opacity="1" points="471,310 484,310 484,316 490,316 490,337 471,337 471,310" />
+	<line stroke="black" stroke-opacity="1" x1="484" y1="310" x2="490" y2="316" />
+</g>
+<g>
+	<rect fill="#dcdcdc" stroke="black" stroke-width="1" stroke-opacity="1" x="336" y="61" width="171" height="103" />
+	<polygon fill="#dcdcdc" stroke="black" stroke-opacity="1" points="336,61 346,51 517,51 517,154 507,164 507,61 336,61" />
+	<line stroke="black" stroke-opacity="1" x1="507" y1="61" x2="517" y2="51" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="422" y="75">:Ruby</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="196" y="97" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="54" y="151" width="145" height="3" />
+	<rect fill="#c0ffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="50" y="93" width="146" height="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="123" y="116">&lt;&lt;artifact&gt;&gt;</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="123" y="145">Application</text>
+	<polygon fill="none" stroke="black" stroke-opacity="1" points="173,97 186,97 186,103 192,103 192,124 173,124 173,97" />
+	<line stroke="black" stroke-opacity="1" x1="186" y1="97" x2="192" y2="103" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="197" y="190" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="55" y="244" width="145" height="3" />
+	<rect fill="#c0ffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="51" y="186" width="146" height="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="124" y="209">&lt;&lt;artifact&gt;&gt;</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="124" y="238">Graffiti Module</text>
+	<polygon fill="none" stroke="black" stroke-opacity="1" points="174,190 187,190 187,196 193,196 193,217 174,217 174,190" />
+	<line stroke="black" stroke-opacity="1" x1="187" y1="190" x2="193" y2="196" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="198" y="286" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="56" y="340" width="145" height="3" />
+	<rect fill="#c0ffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="52" y="282" width="146" height="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="125" y="305">&lt;&lt;artifact&gt;&gt;</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="125" y="334">Ruby/DBI</text>
+	<polygon fill="none" stroke="black" stroke-opacity="1" points="175,286 188,286 188,292 194,292 194,313 175,313 175,286" />
+	<line stroke="black" stroke-opacity="1" x1="188" y1="286" x2="194" y2="292" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="493" y="94" width="3" height="57" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="351" y="148" width="145" height="3" />
+	<rect fill="#c0ffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="347" y="90" width="146" height="58" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-anchor="middle" x="420" y="113">&lt;&lt;artifact&gt;&gt;</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="420" y="142">SynCache Module</text>
+	<polygon fill="none" stroke="black" stroke-opacity="1" points="470,94 483,94 483,100 489,100 489,121 470,121 470,94" />
+	<line stroke="black" stroke-opacity="1" x1="483" y1="94" x2="489" y2="100" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="125" y1="185" x2="131" y2="179" />
+	<line stroke="black" stroke-opacity="1" x1="125" y1="185" x2="119" y2="179" />
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="125" y1="155" x2="125" y2="185" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="126" y1="281" x2="132" y2="275" />
+	<line stroke="black" stroke-opacity="1" x1="126" y1="281" x2="120" y2="275" />
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="126" y1="248" x2="126" y2="281" />
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="265" y="122">DRuby</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="269" y="290">SQL</text>
+</g>
+</svg>

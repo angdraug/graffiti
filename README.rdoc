@@ -1,0 +1,127 @@
+= Graffiti - relational RDF store for Ruby
+
+== Synopsis
+
+  require 'dbi'
+  require 'yaml'
+  require 'graffiti'
+
+  db = DBI.connect(dsn, user, password)
+  config = File.open('rdf.yaml') {|f| YAML.load(f.read) }
+  store = Graffiti::Store.new(db, config)
+
+  store.select_all(%{
+    SELECT ?date, ?title
+    WHERE (dc::date ?r ?date FILTER ?date >= :start)
+          (dc::title ?r ?title)
+    ORDER BY ?date DESC}, 10, 0, :start => Time.now - 24*3600)
+
+
+== Description
+
+Graffiti is an RDF store based on dynamic translation of RDF queries
+into SQL. Graffiti allows to map any relational database schema into RDF
+semantics and vice versa, to store any RDF data in a relational
+database.
+
+
+== Requirements
+
+Graffiti uses Ruby/DBI to connect to database backend and provides a
+DBI-like interface to run RDF queries in Squish query language from Ruby
+applications. SynCache object cache is used for in-process cache of
+translated Squish queries.
+
+
+== Query Language
+
+Graffiti implements Squish RDF query language with several extensions. A
+query may include following clauses:
+
+* SELECT: comma-separated list of result expressions, which may be
+  variables or aggregate functions.
+
+* WHERE: main graph pattern, described as a list of triple patterns.
+  Each triple is enclosed in parenthesis and includes predicate, subject
+  and object. Predicate must be a URL and may use a shorthand notation
+  with namespace id separated by double colon. Subject may be a URL,
+  internal resource id, or variable. Object may be a URL, internal
+  resource id, variable, or literal. Values of variables bound by the
+  triple pattern may be bound by an optional FILTER expression.
+
+* EXCEPT: negative graph pattern. Solutions that match any part of the
+  negative graph pattern are excluded from the result set.
+
+* OPTIONAL: optional graph pattern. Variables defined in the optional
+  pattern are only included in the result set only for solutions that
+  match corresponding parts of the optional graph pattern.
+
+* LITERAL: global filter expression. Used for expressions that involve
+  variables from different triple patterns.
+
+* GROUP BY: result set aggregation criteria.
+
+* ORDER BY: result set ordering criteria.
+
+* USING: namespaces definitions. Namespaces defined in the RDF store
+  configuration do not have to be repeated here.
+
+A basic update language is also implemented. A Squish assert statement
+uses the same structure as a query, with SELECT clause replaced by
+either one or both of the following clauses:
+
+* INSERT: list of variables representing new resources to be inserted
+  into the RDF graph.
+
+* UPDATE: list of assignments of literal expressions to variables bound
+  by a solution.
+
+Assert statement will only update one solution per invocation, if more
+solutions match the graph pattern, only the first will be updated.
+
+
+== Relational Data ==
+
+Relational data has to be adapted for RDF access using Graffiti. The
+adaptation is non-intrusive and will not break compatibility with
+existing SQL queries.
+
+Following schema changes are required for all cases:
+
+* Create rdfs:Resource superclass table with auto-generated primary key.
+
+* Replace primary keys of mapped subclass tables with foreign keys
+  referencing the rdfs:Resource table (existing foreign keys may need to
+  be updated to reflect this change.
+
+* Register rdfs:subClassOf inference database triggers to update the
+  rdfs:Re-source table and maintain foreign keys integrity on all
+  changes in mapped subclass tables.
+
+Following changes may be necessary to support optional RDF mapping
+features:
+
+* Register database triggers for other cases of rdfs:subClassOf
+  entailment.
+
+* Create triples table (required to represent non-relational RDF data
+  and RDF statement reification).
+
+* Add sub-property qualifier attributes referencing property URIref
+  entry in the rdfs:Resource table for each attribute mapped to a
+  super-property.
+
+* Create transitive closure tables, register owl:TransitiveProperty
+  inference triggers.
+
+Example of RDF map and corresponding triggers can be found in
+doc/examples/.
+
+
+== Copying
+
+  Copyright (c) 2002-2009  Dmitry Borodaenko <angdraug@debian.org>
+
+  This program is free software.
+  You can distribute/modify this program under the terms of the GNU
+  General Public License version 3 or later.

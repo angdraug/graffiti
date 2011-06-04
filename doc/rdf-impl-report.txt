@@ -1,0 +1,126 @@
+Samizdat RDF Implementation Report
+==================================
+
+http://lists.w3.org/Archives/Public/www-rdf-interest/2003Sep/0043.html
+
+Implementation
+--------------
+
+http://www.nongnu.org/samizdat/
+
+Samizdat is a generic RDF-based engine for building collaboration and
+open publishing web sites. Samizdat will let everyone publish, view,
+comment, edit, and aggregate text and multimedia resources, vote on
+ratings and classifications, filter resources by flexible sets of
+criteria, cooperate and coordinate on all kinds of activities (see
+Design Goals document). Samizdat intends to promote values of freedom,
+openness, equality, and cooperation.
+
+Samizdat engine is implemented using Ruby programming language, Apache
+mod_ruby module, and PostgreSQL RDBMS, and is available under the GNU
+General Public License, version 2 or later.
+
+Project development started in December 2002, first public release was
+announced in June 2003. This report refers to the Samizdat 0.0.4,
+released on 2003-09-01.
+
+Functionality covered by this version includes: registering site
+members, publishing and replying to messages, uploading multimedia
+messages, voting on standard tags on resources; hand-editing or using
+GUI for constructing and publishing Squish queries that can be used to
+search and filter site resources.
+
+
+RDF Schema
+----------
+
+Samizdat defines its own RDF schema for description of site members,
+published messages, votes, and other site resources (see Concepts
+document). One of the outstanding features of Samizdat schema is the use
+of statement reification in approval of content classification with
+votes cast by site members.
+
+Samizdat RDF schema uses Dublin Core metadata where applicable; also,
+integration of site member descriptions with FOAF is planned.
+
+One of the problems encountered in Samizdat RDF Schema development was
+the lack of standard metadata describing discussion threads. While other
+properties defined in Samizdat schema denote Samizdat-specific concepts,
+such as "vote" and "rating", it is more desirable to use commonly agreed
+metadata for threading structure in place of implementation-local
+"thread" and "inReplyTo" properties.
+
+
+RDF Import and Export
+---------------------
+
+While Samizdat model follows RDF Concepts and RDF Semantics
+recommendations (with the exceptions put down below), the engine does
+not externally interchange RDF data and thus does not use RDF/XML or
+other RDF serialization format. It is assumed that, when the need for
+RDF import and export arises, it can be implemented externally on top of
+the Samizdat RDF storage module and using existing RDF frameworks such
+as Redland.
+
+
+Datatyped Literals
+------------------
+
+Samizdat doesn't implement datatyped literals, and relies on underlying
+PostgreSQL capabilities for mapping between literal values and their
+string representations. Outside of SQL context, literals are interpreted
+as opaque strings; XML literals are not treated specially, and datatype
+information is not preserved.
+
+However, support of XML schema datatypes is considered necessary in
+order to untie a Samizdat knowledge base from specifics of underlying
+RDF storage, and will be implemented as a prerequisite for migration to
+a selection of alternative RDF storage backends (candidates are FramerD,
+3store, and Redland).
+
+
+Language Tags
+-------------
+
+Literal language tags are not honoured, "dc:language" property is
+supposed to be used to denote message language.
+
+
+Entailments
+-----------
+
+Samizdat RDF storage only implements simple entailment, vocabulary
+entailment is not implemented yet. At the moment, simple entailment
+suffices for all features of the Samizdat engine. If and when vocabulary
+entailment becomes necessary, it will be implemented in Samizdat RDF
+storage module or relegated to an alternative RDF storage backend,
+depending on status of backend alternatives for Samizdat at that time.
+
+
+Query Support
+-------------
+
+Samizdat RDF storage implements a translation of RDF query graphs
+written in extended Squish into relational SQL queries and allows purely
+relational representation of selected properties of site resources (see
+RDF Storage and Storage Implementation documents).
+
+It must be noted that at the moment, status of RDF query language
+standards is found unsatisfactory.
+
+DAML Query Language abstract specification provides excellent formal
+basis, but does not encompass all capabilities of existing RDF query
+languages. Also, existing query languages are limited in one way or
+another, are underformalized (most are defined by single
+implementation), and often overloaded with baroque syntax.
+
+Two major features that were missed the most in existing query languages
+at the time of Samizdat RDF storage implementation were: knowledge base
+update allowing to merge complex constructs into the site KB graph
+(implemented in Samizdat RDF Data Manipulation Language), and workflow
+control providing at least transaction rollback (in Samizdat, underlying
+PostgreSQL transactions are used). Other Squish extensions implemented
+in Samizdat are literal conditions and answer collection ordering
+(currently, relegated to PostgreSQL; ideally, interpreted according to
+literal datatypes).
+

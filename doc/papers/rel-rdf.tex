@@ -1,0 +1,545 @@
+\documentclass{llncs}
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{graphicx}
+\usepackage[pdfpagescrop={92 112 523 778},a4paper=false,
+            pdfborder={0 0 0}]{hyperref}
+\emergencystretch=8pt
+%
+\begin{document}
+\mainmatter              % start of the contributions
+%
+\title{Accessing Relational Data with RDF Queries and Assertions}
+\toctitle{Accessing Relational Data with RDF Queries and Assertions}
+\titlerunning{Accessing Relational Data with RDF}
+%
+\author{Dmitry Borodaenko}
+\authorrunning{Dmitry Borodaenko}   % abbreviated author list (for running head)
+%%%% modified list of authors for the TOC (add the affiliations)
+\tocauthor{Dmitry Borodaenko}
+%
+\institute{\email{angdraug@debian.org}}
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+This paper presents a hybrid RDF storage model that combines relational data
+with arbitrary RDF meta-data, as implemented in the RDF storage layer of the
+Samizdat open publishing and collaboration engine, and explains the supporting
+algorithms for online translation of RDF queries and conditional assertions
+into their relational equivalents. Proposed model allows to supplement legacy
+databases with RDF meta-data without sacrificing the benefits of RDBMS
+technology.
+\end{abstract}
+
+
+\section{Introduction}
+
+The survey of free software / open source RDF storage systems performed by
+SWAD-Europe\cite{swad-storage} has found that the most wide-spread approach to
+RDF storage relies on relational databases. As seen from the companion report
+on mapping Semantic Web data with RDBMSes\cite{swad-rdbms-mapping},
+traditional relational representation of RDF is a triple store, usually
+evolving around a central statement table with \{subject, predicate, object\}
+triples as its rows and one or more tables storing resource URIrefs,
+namespaces, and other supplementary data.
+
+While such triple store approach serves well to satisfy the open world
+assumption of RDF, by abandoning existing relational data models it fails to
+take full advantage of the RDBMS technology. According to \cite{swad-storage},
+existing RDF storage tools are still immature; in the same time, although
+modern triple stores claim to scale to millions of triples, ICS-FORTH
+research\cite{ics-volume} shows that schema-specific storage model yields
+better results with regards to performance and scalability on large volumes of
+data.
+
+These concerns are addressed from different angles by RSSDB\cite{rssdb},
+Federate\cite{ericp-rdf-rdb-access}, and D2R\cite{d2r} packages. RSSDB splits
+the single triples table into a schema-specific set of property tables. In
+this way, it walks away from relational data model, but maintains performance
+benefits due to better indexing. Federate takes the most conservative approach
+and allows to query a relational database with a restricted
+application-specific RDF schema. Conversely, D2R is intended for batch export
+of data from RDBMS to RDF and assumes that subsequent operation will involve
+only RDF.
+
+The hybrid RDF storage model presented in this paper attacks this problem from
+yet another angle, which can be described as a combination of Federate's
+relational-to-RDF mapping and a traditional triple store. While having the
+advantage of being designed from the ground up with the RDF model in mind,
+Samizdat RDF layer\cite{samizdat-rdf-storage} deviated from the common RDF
+storage practice in order to use both relational and triple data models and
+get the best of both worlds. Hybrid storage model was designed, and algorithms
+were implemented that allow to access the data in the hybrid triple-relational
+model with RDF queries and conditional assertions in an extended variant of
+the Squish\cite{squish} query language.\footnote{The decision to use Squish
+over more expressive languages like RDQL\cite{rdql} and
+Notation3\cite{notation3} was made due to its intuitive syntax, which was
+found more suitable for the Samizdat's query composer GUI intended for end
+users of an open-publishing system.} This paper describes the proposed model
+and its implementation in the Samizdat engine.
+
+
+\section{Relational Database Schema}
+
+All content in a Samizdat site is represented internally as RDF. Canonic
+URIref for any Samizdat resource is {\tt http://<site-url>/<resource-id>},
+where {\tt <site-url>} is a base URL of the site and {\tt <resource-id>} is a
+unique (within a single site) numeric identifier of the resource.
+
+Root of SQL representation of RDF resources is {\tt Resource} table with {\tt
+id} primary key field storing {\tt <resource-id>}, and {\tt label} text field
+representing resource label. Semantics of label values are different for
+literals, references to external resources, and internal resources of the
+site.
+
+\emph{Literal} value (including typed literals) is stored directly in the {\tt
+label} field and marked with {\tt literal} boolean field.
+
+\emph{External resource} label contains the resource URIref and is marked with
+{\tt uriref} boolean field.
+
+\emph{Internal resource} is mapped into a row in an \emph{internal resource
+table} with name corresponding to the resource class name stored in the {\tt
+label} field, primary key {\tt id} field referencing back to the {\tt
+Resource} table, and other fields holding values of \emph{internal properties}
+for this resource class, represented as literals or references to other
+resources stored in the {\tt Resource} table. Primary key reference to {\tt
+Resource.id} is enforced by PostgreSQL stored procedures.
+
+To determine what information about a resource can be stored in and extracted
+from class-specific tables, RDF storage layer consults site-specific mapping
+\begin{equation}
+M(p) = \{\langle t_{p1},~f_{p1} \rangle, \enspace \dots\} \enspace ,
+\end{equation}
+which stores a list of possible pairs of SQL table name $t$ and field name $f$
+for each internal property name $p$. Mapping $M$ is read at runtime from
+external YAML\cite{yaml} file of the following form:
+
+\begin{verbatim}
+---
+ns:
+  s: 'http://www.nongnu.org/samizdat/rdf/schema#'
+  focus: 'http://www.nongnu.org/samizdat/rdf/focus#'
+  items: 'http://www.nongnu.org/samizdat/rdf/items#'
+  rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  dc: 'http://purl.org/dc/elements/1.1/'
+
+map:
+  'dc::date': {Resource: published_date}
+  's::id': {Resource: id}
+
+  'rdf::subject': {Statement: subject}
+  'rdf::predicate': {Statement: predicate}
+  'rdf::object': {Statement: object}
+
+  's::rating': {Statement: rating}
+
+  . . .
+\end{verbatim}
+
+\emph{External properties}, i.e. properties that are not covered by $M$, are
+represented by \{{\tt subject}, {\tt predicate}, {\tt object}\} triples in the
+{\tt Statement} table. Every such triple is treated as a reified statement in
+RDF semantics and is assigned a {\tt <resource-id>} and a record in the {\tt
+Resource} table.
+
+{\tt Resource} and {\tt Statement} are also internal resource tables, and, as
+such, have some of their fields mapped by $M$. In particular, {\tt subject},
+{\tt predicate}, and {\tt object} fields of the {\tt Statement} table are
+mapped to the corresponding properties from the RDF reification vocabulary,
+and {\tt Resource.id} is mapped to {\tt samizdat:id} property from Samizdat
+namespace.
+
+Excerpt from default Samizdat database schema with mapped field names replaced
+by predicate QNames is visualized on Fig.\,\ref{db-schema-figure}. In addition
+to {\tt Resource} and {\tt Statement} tables described above, it shows the
+{\tt Message} table representing one of internal resource classes. Note how
+{\tt dc:date} property is made available to all resource classes, and how
+reified statements are allowed to have optional {\tt samizdat:rating}
+property.
+
+\begin{figure}
+%\begin{verbatim}
+%      +-------------+    +-----------------+
+%      | Resource    |    | Statement       |    
+%      +-------------+    +-----------------+
+%   +->| samizdat:id |<-+-| id              |
+%   |  | label       |  +-| rdf:subject     |
+%   |  | literal     |  +-| rdf:predicate   |
+%   |  | uriref      |  +-| rdf:object      |
+%   |  | dc:date     |    | samizdat:rating |
+%   |  +-------------+    +-----------------+
+%   | 
+%   |  +------------------+
+%   |  | Message          |
+%   |  +------------------+
+%   +--| id               |
+%      | dc:title         |
+%      | dc:format        |
+%      | samizdat:content |
+%      +------------------+
+%\end{verbatim}
+\begin{center}
+\includegraphics[scale=0.6]{fig1.eps}
+\end{center}
+\caption{Excerpt from Samizdat database schema}
+\label{db-schema-figure}
+\end{figure}
+
+
+\section{Query Pattern Translation}
+%
+\subsection{Prerequisites}
+
+Pattern translation algorithm operates on the pattern section of a Squish
+query. Query pattern $\Psi$ is represented as a list of \emph{pattern clauses}
+\begin{equation}
+\psi_i = \langle p_i,~s_i,~o_i \rangle \enspace ,
+\end{equation}
+where $i$ is the position of a clause, $p_i$ is the predicate URIref, $s_i$ is
+the subject node and may be URIref or blank node, $o_i$ is the object node and
+may be URIref, blank node, or literal.
+
+\subsection{Predicate Mapping}
+
+For each position $i$, predicate URIref $p_i$ is looked up in the map of
+internal resource properties $M$. All possible mappings are recorded for all
+clauses in a list $C$:
+\begin{equation}
+c_i = \{\langle t_{i1},~f_{i1} \rangle, \enspace \langle t_{i2},~f_{i2}
+\rangle, \enspace \dots\} \enspace ,
+\end{equation}
+where $t_{ij}$ is the table name (same for subject $s_i$ and object $o_i$) and
+$f_{ij}$ is the field name (meaningful for object only, since subject is
+always mapped to the {\tt id} primary key). In the same iteration, all subject
+and object positions of nodes are recorded in the reverse positional mapping
+\begin{equation}
+R(n) = \{\langle i_1,~m_1 \rangle, \enspace \langle i_2,~m_2 \rangle, \enspace
+\dots\} \enspace ,
+\end{equation}
+where $m$ shows whether node $n$ appears as subject or as object in the clause
+$i$.
+
+Each ambiguous property mapping is compared with mappings for other
+occurrences of the same subject and object nodes in the pattern graph; anytime
+non-empty intersection of mappings for the same node is found, both subject
+and object mappings for the ambiguous property are refined to such
+intersection.
+
+\subsection{Relation Aliases and Join Conditions}
+
+Relation alias $a_i$ is determined for each clause mapping $c_i$, such that
+for all subject occurrences of the subject $s_i$ that were mapped to the same
+table $t_i$, alias is the same, and for all positions with differing table
+mapping or subject node, alias is different.
+
+For all nodes $n$ that are mapped to more than one $\langle a_i,~f_i \rangle$
+pair in different positions, join conditions are generated. Additionally, for
+each external resource, {\tt Resource} table is joined by URIref, and for each
+existential blank node that isn't already bound by join, {\tt NOT NULL}
+condition is generated. Resulting join conditions set $J$ is used to generate
+the {\tt WHERE} section of the target SQL query.
+
+\subsection{Example}
+
+Following Squish query selects all messages with rating above 1:
+
+\begin{verbatim}
+SELECT ?msg, ?title, ?name, ?date, ?rating
+WHERE (dc::title ?msg ?title)
+      (dc::creator ?msg ?author)
+      (s::fullName ?author ?name)
+      (dc::date ?msg ?date)
+      (rdf::subject ?stmt ?msg)
+      (rdf::predicate ?stmt dc::relation)
+      (rdf::object ?stmt focus::Quality)
+      (s::rating ?stmt ?rating)
+LITERAL ?rating >= 1
+ORDER BY ?rating
+USING rdf FOR http://www.w3.org/1999/02/22-rdf-syntax-ns#
+      dc FOR http://purl.org/dc/elements/1.1/
+      s FOR http://www.nongnu.org/samizdat/rdf/schema#
+      focus FOR http://www.nongnu.org/samizdat/rdf/focus#
+\end{verbatim}
+
+Mappings produced by translation of this query are summarized in the
+Table~\ref{mappings-table}.
+
+\begin{table}
+\caption{Query Translation Mappings}
+\label{mappings-table}
+\begin{center}
+\begin{tabular}{clll}
+\hline\noalign{\smallskip}
+$i$ & $t_i$ & $f_i$ & $a_i$\\
+\noalign{\smallskip}
+\hline
+\noalign{\smallskip}
+1 & {\tt Message} & {\tt title} & {\tt b}\\
+2 & {\tt Message} & {\tt creator} & {\tt b}\\
+3 & {\tt Member} & {\tt full\_name} & {\tt d}\\
+4 & {\tt Resource} & {\tt published\_date} & {\tt c}\\
+5 & {\tt Statement} & {\tt subject} & {\tt a}\\
+6 & {\tt Statement} & {\tt predicate} & {\tt a}\\
+7 & {\tt Statement} & {\tt object} & {\tt a}\\
+8 & {\tt Statement} & {\tt rating} & {\tt a}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+As a result of translation, following SQL query will be generated:
+
+\begin{verbatim}
+SELECT b.id, b.title, d.full_name, c.published_date, a.rating
+FROM Statement a, Message b, Resource c, Member d,
+     Resource e, Resource f
+WHERE a.id IS NOT NULL
+  AND a.object = e.id AND e.literal = false
+      AND e.uriref = true AND e.label = 'focus::Quality'
+  AND a.predicate = f.id AND f.literal = false
+      AND f.uriref = true AND f.label = 'dc::relation'
+  AND a.rating IS NOT NULL
+  AND b.creator = d.id
+  AND b.id = a.subject
+  AND b.id = c.id
+  AND b.title IS NOT NULL
+  AND c.published_date IS NOT NULL
+  AND d.full_name IS NOT NULL
+  AND (a.rating >= 1)
+ORDER BY a.rating
+\end{verbatim}
+
+\subsection{Limitations}
+
+In RDF model theory\cite{rdf-mt}, a resource may belong to more than one
+class. In Samizdat RDF storage model, resource class specified in {\tt
+Resource.label} is treated as the primary class: it is not possible to have
+some of the internal properties of a resource mapped to one table and some
+other internal properties mapped to the other. The only exception to this is,
+obviously, the {\tt Resource} table, which is shared by all resource classes.
+
+Predicates with cardinality greater than 1 cannot be mapped to internal
+resource tables, and should be recorded as reified statements instead.
+
+RDF properties are allowed to be mapped to more than one internal resource
+table, and queries on such ambiguous properties are intended to select all
+classes of resources that match this property in conjunction with the rest of
+the query.
+
+The algorithm described above assumes that other pattern clauses refine such
+ambiguous property mapping to one internal resource table. Queries that fail
+this assumption will be translated incorrectly by the current implementation:
+only the resource class from the first remaining mapping will be matched. This
+should be taken into account in site-specific resource maps: ambiguous
+properties should be avoided where possible, and their mappings should go in
+order of resource class probability descension.
+
+It is possible to solve this problem, but any precise solution will add
+significant complexity to the resulting query. Solutions that would not
+adversely affect performance are still being sought. So far, it is recommended
+not to specify more than one mapping per internal property.
+
+
+\section{Conditional Assertion}
+%
+\subsection{Prerequisites}
+
+Conditional assertion statement in Samizdat Squish is recorded using the same
+syntax as RDF query, with the {\tt SELECT} section containing variables list
+replaced by {\tt INSERT} section with a list of ``don't-bind'' variables and
+{\tt UPDATE} section containing assignments of values to query variables:
+
+\begin{verbatim}
+[ INSERT node [, ...] ]
+[ UPDATE node = value [, ...] ]
+WHERE (predicate subject object) [...]
+[ USING prefix FOR namespace [...] ]
+\end{verbatim}
+
+Initially, pattern clauses in assertion are translated using the same
+procedure as for a query. Pattern $\Psi$, clause mapping $C$, reverse
+positional mapping $R$, alias list $A$, and join conditions set $J$ are
+generated as described in the previous section.
+
+After that, database update is performed in two stages described below. Both
+stages are executed within a single transaction, rolling back intermediate
+inserts and updates in case assertion fails.
+
+\subsection{Resource Values}
+
+On this stage value mapping $V(n)$ is defined for each node $n$, and necessary
+resource insertions are performed:
+
+\begin{enumerate}
+\item If $n$ is an internal resource, $V(n)$ is its {\tt id}. If there is no
+resource with such {\tt id} in the database, error is raised.
+\item If $n$ is a literal, $V(n)$ is the literal value.
+\item If $n$ is a blank node and only appears in object position, it is
+assigned a value from the {\tt UPDATE} section of the assertion.
+\item If $n$ is a blank node and appears in subject position, it is either
+looked up in the database or inserted as a new resource. If no resource in the
+database matches $n$ (to check that, subgraph of $\Psi$ including all pattern
+nodes and predicates reachable from $n$ is generated and matched against the
+database), or if $n$ appears in the {\tt INSERT} section of the assertion, new
+resource is created and its {\tt id} is assigned to $V(n)$. If matching
+resource is found, $V(n)$ becomes equal to its {\tt id}.
+\item If $n$ is an external URIref, it is looked up in the {\tt Resource}
+table. As with subject blank nodes, $V(n)$ is the {\tt id} of a matching or
+new resource.
+\end{enumerate}
+
+All nodes that were inserted during this stage are recorded in the set of new
+nodes $N$.
+
+\subsection{Data Assignment}
+
+For all aliases from $A$ except additional aliases that are defined for
+external URIref nodes (which don't have to be looked up since their {\tt id}s
+are recorded in $V$ during the previous stage), reverse positional mapping
+\begin{equation}
+R_\mathrm{A}(a) = \{i_1, \enspace i_2, \enspace \dots\}
+\end{equation}
+is defined. Key node $K$ is defined as the subject node $s_{i_1}$ from clause
+$\psi_{i_1}$, and aliased table $t$ is defined as the table name $t_{i_1}$
+from clause mapping $c_{i_1}$.
+
+For each position $k$ from $R_\mathrm{A}(a)$, a pair $\langle f_k, V(o_k)
+\rangle$, where $f_k$ is the field name from $c_k$, and $o_k$ the object node
+from $\psi_k$, is added to the data assignment list $D(K)$ if node $o_k$
+occurs in new node list $N$ or in {\tt UPDATE} section of the assertion
+statement.
+
+If key node $K$ occurs in $N$, new row is inserted into the table $t$. If $K$
+is not in $N$, but $D(K)$ is not empty, SQL update statement is generated for
+the row of $t$ with {\tt id} equal to $V(K)$. In both cases, assignments are
+generated from the data assignment list $D(K)$.
+
+The above procedure is repeated for each alias $a$ included in $R_\mathrm{A}$.
+
+\subsection{Iterative assertions}
+
+If the assertion pattern matches more than once in the site knowledge base,
+the algorithm defined in this section will nevertheless run the appropriate
+insertions and updates only once. For iterative update of all occurences of
+pattern, assertion has to be programmatically wrapped inside an appropriate
+RDF query.
+
+
+\section{Implementation Details}
+
+Samizdat engine\cite{samizdat-impl-report} is written in Ruby programming
+language and uses PostgreSQL database for storage and an assortment of Ruby
+libraries for database access (DBI), configuration and RDF mapping (YAML),
+l10n (GetText), and Pingback protocol (XML-RPC). It is running on a variety of
+platforms ranging from Debian GNU/Linux to Windows 98/Cygwin. Samizdat is free
+software and is available under GNU General Public License, version 2 or
+later.
+
+Samizdat project development started in December 2002, first public release
+was announced in June 2003. As of the second beta version 0.5.1, released in
+March 2004, Samizdat provided basic set of open publishing functionality,
+including registering site members, publishing and replying to messages,
+uploading multimedia messages, voting on relation of site focuses to
+resources, creating and managing new focuses, hand-editing or using GUI for
+constructing and publishing Squish queries that can be used to search and
+filter site resources.
+
+\section{Conclusions}
+
+Wide adoption of the Semantic Web requires interoperability between relational
+databases and RDF applications. Existing RDF stores treat relational data as
+legacy and require that it is recorded in triples before being processed, with
+the exception of the Federate system that provides limited direct access to
+relational data via application-specific RDF schema.
+
+The Samizdat RDF storage layer provides an intermediate solution for this
+problem by combining relational databases with arbitrary RDF meta-data. The
+described approach allows to take advantage of RDBMS transactions,
+replication, performance optimizations, etc., in Semantic Web applications,
+and reduces the costs of migration from relational data model to RDF.
+
+As can be seen from corresponding sections of this paper, current
+implementation of the proposed approach has several limitations. These
+limitations are not caused by limitations in the approach itself, but rather,
+reflect the pragmatic decision to only implement the functionality that is
+used by Samizdat engine. As more advanced collaboration features such as
+message versioning and aggregation are added to Samizdat, some of the
+limitations of its RDF storage layer will be removed.
+
+
+% ---- Bibliography ----
+%
+\begin{thebibliography}{19}
+%
+\bibitem {ics-volume}
+Alexaki, S., Christophides, V., Karvounarakis, G., Plexousakis D., Tolle, K.:
+The RDFSuite: Managing Voluminous RDF Description Bases, Technical report,
+ICS-FORTH, Heraklion, Greece, 2000.\\
+http://139.91.183.30:9090/RDF/publications/semweb2001.html
+
+\bibitem {swad-storage}
+Beckett, Dave:
+Semantic Web Scalability and Storage: Survey of Free Software / Open Source
+RDF storage systems, SWAD-Europe Deliverable 10.1\\
+http://www.w3.org/2001/sw/Europe/reports/rdf\_scalable\_storage\_report
+
+\bibitem {swad-rdbms-mapping}
+Beckett, D., Grant, J.:
+Semantic Web Scalability and Storage: Mapping Semantic Web Data with RDBMSes,
+SWAD-Europe Deliverable 10.2\\
+http://www.w3.org/2001/sw/Europe/reports/scalable\_rdbms\_mapping\_report
+
+\bibitem{yaml}
+Ben-Kiki, O., Evans, C., Ingerson, B.:
+YAML Ain't Markup Language (YAML) 1.0. Working Draft 2004-JAN-29.\\
+http://www.yaml.org/spec/
+
+\bibitem {notation3}
+Berners-Lee, Tim:
+Notation3 --- Ideas about Web architecture\\
+http://www.w3.org/DesignIssues/Notation3
+
+\bibitem {d2r}
+Bizer, Chris:
+D2R MAP --- Database to RDF Mapping Language and Processor\\
+http://www.wiwiss.fu-berlin.de/suhl/bizer/d2rmap/D2Rmap.htm
+
+\bibitem {samizdat-rdf-storage}
+Borodaenko, Dmitry:
+Samizdat RDF Storage, December 2002\\
+http://savannah.nongnu.org/cgi-bin/viewcvs/samizdat/samizdat/doc/rdf-storage.txt
+
+\bibitem {samizdat-impl-report}
+Borodaenko, Dmitry:
+Samizdat RDF Implementation Report, September 2003\\
+http://lists.w3.org/Archives/Public/www-rdf-interest/2003Sep/0043.html
+
+\bibitem {rdf-mt}
+Hayes, Patrick:
+RDF Semantics. W3C, February 2004\\
+http://www.w3.org/TR/rdf-mt
+
+\bibitem {rdql}
+Jena Semantic Web Framework:
+RDQL Grammar\\
+http://jena.sf.net/RDQL/rdql\_grammar.html
+
+\bibitem {ericp-rdf-rdb-access}
+Prud'hommeaux, Eric:
+RDF Access to Relational Databases\\
+http://www.w3.org/2003/01/21-RDF-RDB-access/
+
+\bibitem {rssdb}
+RSSDB --- RDF Schema Specific DataBase (RSSDB), ICS-FORTH, 2002\\
+http://139.91.183.30:9090/RDF/RSSDB/
+
+\bibitem {squish}
+Libby Miller, Andy Seaborne, Alberto Reggiori:
+Three Implementations of SquishQL, a Simple RDF Query Language. 1st
+International Semantic Web Conference (ISWC2002), June 9-12, 2002. Sardinia,
+Italy.\\
+http://ilrt.org/discovery/2001/02/squish/
+
+\end{thebibliography}
+\end{document}

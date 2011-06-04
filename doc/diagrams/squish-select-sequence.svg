@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Bouml (http://bouml.free.fr/) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="638" height="718" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g>
+	<line stroke="black" stroke-dasharray="18,6"  stroke-opacity="1" x1="30" y1="45" x2="30" y2="718" />
+</g>
+<g>
+	<line stroke="black" stroke-dasharray="18,6"  stroke-opacity="1" x1="112" y1="45" x2="112" y2="718" />
+</g>
+<g>
+	<line stroke="black" stroke-dasharray="18,6"  stroke-opacity="1" x1="211" y1="45" x2="211" y2="718" />
+</g>
+<g>
+	<line stroke="black" stroke-dasharray="18,6"  stroke-opacity="1" x1="447" y1="46" x2="447" y2="718" />
+</g>
+<g>
+	<line stroke="black" stroke-dasharray="18,6"  stroke-opacity="1" x1="507" y1="84" x2="507" y2="718" />
+</g>
+<g>
+	<line stroke="black" stroke-dasharray="18,6"  stroke-opacity="1" x1="566" y1="45" x2="566" y2="718" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="52" y="8" width="3" height="24" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="10" y="29" width="45" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="6" y="4" width="46" height="25" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" text-anchor="middle" x="29" y="22">:Store</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="159" y="8" width="3" height="24" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="66" y="29" width="96" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="62" y="4" width="97" height="25" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" text-anchor="middle" x="111" y="22">:SquishSelect</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="250" y="8" width="3" height="24" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="174" y="29" width="79" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="170" y="4" width="80" height="25" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" text-anchor="middle" x="210" y="22">:SqlMapper</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="484" y="9" width="3" height="24" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="412" y="30" width="75" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="408" y="5" width="76" height="25" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" text-anchor="middle" x="446" y="23">:RdfConfig</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="558" y="47" width="3" height="24" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="457" y="68" width="104" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="453" y="43" width="105" height="25" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" text-anchor="middle" x="506" y="61">:SqlExpression</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="622" y="8" width="3" height="24" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="512" y="29" width="113" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="508" y="4" width="114" height="25" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" text-anchor="middle" x="565" y="22">:SqlNodeBinding</text>
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="25" y="73" width="10" height="633" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="107" y="75" width="10" height="52" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="107" y="579" width="10" height="127" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="206" y="88" width="10" height="474" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="206" y="599" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="206" y="639" width="10" height="25" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="206" y="679" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="442" y="239" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="502" y="269" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="502" y="450" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="561" y="421" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="502" y="524" width="10" height="24" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="36" y1="591" x2="107" y2="591" />
+	<polygon fill="#000000" stroke="none" points="107,591 103,587 103,595" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="118" y1="651" x2="206" y2="651" />
+	<polygon fill="#000000" stroke="none" points="206,651 202,647 202,655" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="118" y1="687" x2="206" y2="687" />
+	<polygon fill="#000000" stroke="none" points="206,687 202,683 202,691" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" stroke-dasharray="4,4" x1="36" y1="122" x2="107" y2="122" />
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 40 118 L 36 122 L 40 126" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="212" y="101" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="212" y="143" width="10" height="204" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="212" y="361" width="10" height="119" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="212" y="500" width="10" height="52" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="36" y1="83" x2="107" y2="83" />
+	<polygon fill="#000000" stroke="none" points="107,83 103,79 103,87" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="118" y1="608" x2="206" y2="608" />
+	<polygon fill="#000000" stroke="none" points="206,608 202,604 202,612" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="118" y1="93" x2="206" y2="93" />
+	<polygon fill="#000000" stroke="none" points="206,93 202,89 202,97" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 224 102 L 241 102 L 241 109 L 224 109" />
+	<polygon fill="#000000" stroke="none" points="224,109 228,113 228,105" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 224 144 L 241 144 L 241 151 L 224 151" />
+	<polygon fill="#000000" stroke="none" points="224,151 228,155 228,147" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 224 362 L 241 362 L 241 369 L 224 369" />
+	<polygon fill="#000000" stroke="none" points="224,369 228,373 228,365" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="223" y1="455" x2="502" y2="455" />
+	<polygon fill="#000000" stroke="none" points="502,455 498,451 498,459" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 224 501 L 241 501 L 241 508 L 224 508" />
+	<polygon fill="#000000" stroke="none" points="224,508 228,512 228,504" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="223" y1="529" x2="502" y2="529" />
+	<polygon fill="#000000" stroke="none" points="502,529 498,525 498,533" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="218" y="177" width="10" height="117" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="218" y="314" width="10" height="24" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="218" y="391" width="10" height="24" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 230 178 L 247 178 L 247 185 L 230 185" />
+	<polygon fill="#000000" stroke="none" points="230,185 234,189 234,181" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="229" y1="244" x2="442" y2="244" />
+	<polygon fill="#000000" stroke="none" points="442,244 438,240 438,248" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 230 315 L 247 315 L 247 322 L 230 322" />
+	<polygon fill="#000000" stroke="none" points="230,322 234,326 234,318" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="229" y1="274" x2="502" y2="274" />
+	<polygon fill="#000000" stroke="none" points="502,274 498,270 498,278" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 230 392 L 247 392 L 247 399 L 230 399" />
+	<polygon fill="#000000" stroke="none" points="230,399 234,403 234,395" />
+</g>
+<g>
+	<rect fill="#ffffff" stroke="black" stroke-width="1" stroke-opacity="1" x="224" y="207" width="10" height="24" />
+</g>
+<g>
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 236 208 L 253 208 L 253 215 L 236 215" />
+	<polygon fill="#000000" stroke="none" points="236,215 240,219 240,211" />
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="61" y="71">new</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="51" y="579">to_sql()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="150" y="81">new</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="141" y="596">where</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="146" y="639">from</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="143" y="675">bind()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="222" y="93">check_graph()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="225" y="137">map_predicates()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="229" y="170">map_pattern()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="238" y="199">label_pattern_components()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="278" y="232">map(predicate)</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="229" y="306">refine_ambiguous_properties()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="473" y="261">new</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="228" y="354">transform()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="231" y="383">define_relation_aliases()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="472" y="443">new</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="531" y="411">new</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="225" y="492">generate_tables_and_conditions()</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="63" y="544">self</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="62" y="110">self</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="342" y="517">rebind()</text>
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="223" y1="426" x2="561" y2="426" />
+	<polygon fill="#000000" stroke="none" points="561,426 557,422 557,430" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" stroke-dasharray="4,4" x1="36" y1="557" x2="206" y2="557" />
+	<path fill="none" stroke="black" stroke-opacity="1" d="M 40 553 L 36 557 L 40 561" />
+</g>
+</svg>

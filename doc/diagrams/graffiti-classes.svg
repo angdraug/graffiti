@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Bouml (http://bouml.free.fr/) -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="667" height="486" version="1.1" xmlns="http://www.w3.org/2000/svg">
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="163" y="22" width="3" height="145" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="21" y="164" width="145" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="17" y="18" width="146" height="146" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="90" y="31">SquishQuery</text>
+	<line stroke="black" stroke-opacity="1" x1="17" y1="40" x2="163" y2="40" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="21" y="53">ns</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="21" y="73">variables</text>
+	<line stroke="black" stroke-opacity="1" x1="17" y1="82" x2="163" y2="82" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" x="21" y="95">uri_shrink()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" text-decoration="underline" x="21" y="115">ns_shrink()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="21" y="135">substitute_literals()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="21" y="155">validate_expression()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="495" y="24" width="3" height="285" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="271" y="306" width="227" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="267" y="20" width="228" height="286" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="381" y="33">SqlMapper</text>
+	<line stroke="black" stroke-opacity="1" x1="267" y1="42" x2="495" y2="42" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="55">clauses</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="75">nodes</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="95">from</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="115">where</text>
+	<line stroke="black" stroke-opacity="1" x1="267" y1="124" x2="495" y2="124" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="137">bind()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="157">check_graph()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="177">map_predicates()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="197">label_pattern_components()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="217">map_pattern()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="237">refine_ambiguous_properties()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="257">define_relation_aliases()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="277">transform()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="297">generate_tables_and_conditions()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="141" y="335" width="3" height="51" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="43" y="383" width="101" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="39" y="331" width="102" height="52" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="90" y="344">SquishSelect</text>
+	<line stroke="black" stroke-opacity="1" x1="39" y1="353" x2="141" y2="353" />
+	<line stroke="black" stroke-opacity="1" x1="39" y1="361" x2="141" y2="361" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="43" y="374">to_sql()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="225" y="247" width="3" height="51" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="127" y="295" width="101" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="123" y="243" width="102" height="52" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="174" y="256">SquishAssert</text>
+	<line stroke="black" stroke-opacity="1" x1="123" y1="265" x2="225" y2="265" />
+	<line stroke="black" stroke-opacity="1" x1="123" y1="273" x2="225" y2="273" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="127" y="286">assert()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="644" y="24" width="3" height="125" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="538" y="146" width="109" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="534" y="20" width="110" height="126" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="589" y="33">SqlExpression</text>
+	<line stroke="black" stroke-opacity="1" x1="534" y1="42" x2="644" y2="42" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="538" y="55">parts</text>
+	<line stroke="black" stroke-opacity="1" x1="534" y1="64" x2="644" y2="64" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="538" y="77">to_s()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="538" y="97">traverse()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="538" y="117">rebind()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="538" y="137">eql?()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="651" y="183" width="3" height="125" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="531" y="305" width="123" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="527" y="179" width="124" height="126" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="589" y="192">SqlNodeBinding</text>
+	<line stroke="black" stroke-opacity="1" x1="527" y1="201" x2="651" y2="201" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="531" y="214">alias</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="531" y="234">field</text>
+	<line stroke="black" stroke-opacity="1" x1="527" y1="243" x2="651" y2="243" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="531" y="256">to_s()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="531" y="276">eql?()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="531" y="296">hash()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="365" y="342" width="3" height="131" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="271" y="470" width="97" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="267" y="338" width="98" height="132" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="316" y="351">Store</text>
+	<line stroke="black" stroke-opacity="1" x1="267" y1="360" x2="365" y2="360" />
+	<line stroke="black" stroke-opacity="1" x1="267" y1="368" x2="365" y2="368" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="381">get_property()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="401">select_one()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="421">select_all()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="441">assert()</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="271" y="461">select()</text>
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="524" y="342" width="3" height="85" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="440" y="424" width="87" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="436" y="338" width="88" height="86" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="480" y="351">RdfConfig</text>
+	<line stroke="black" stroke-opacity="1" x1="436" y1="360" x2="524" y2="360" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="440" y="373">ns</text>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="440" y="393">map</text>
+	<line stroke="black" stroke-opacity="1" x1="436" y1="402" x2="524" y2="402" />
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="440" y="415">ns_expand()</text>
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="266" y1="31" x2="260" y2="25" />
+	<line stroke="black" stroke-opacity="1" x1="266" y1="31" x2="260" y2="37" />
+	<line stroke="black" stroke-opacity="1" x1="167" y1="31" x2="266" y2="31" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="92" y1="330" x2="92" y2="174" />
+	<line stroke="black" stroke-opacity="1" x1="92" y1="168" x2="86" y2="174" />
+	<line stroke="black" stroke-opacity="1" x1="92" y1="168" x2="98" y2="174" />
+	<line stroke="black" stroke-opacity="1" x1="86" y1="174" x2="98" y2="174" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="162" y1="242" x2="129" y2="173" />
+	<line stroke="black" stroke-opacity="1" x1="127" y1="168" x2="124" y2="175" />
+	<line stroke="black" stroke-opacity="1" x1="127" y1="168" x2="134" y2="170" />
+	<line stroke="black" stroke-opacity="1" x1="124" y1="175" x2="134" y2="170" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="533" y1="32" x2="527" y2="26" />
+	<line stroke="black" stroke-opacity="1" x1="533" y1="32" x2="527" y2="38" />
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="499" y1="32" x2="533" y2="32" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="591" y1="178" x2="597" y2="172" />
+	<line stroke="black" stroke-opacity="1" x1="591" y1="178" x2="585" y2="172" />
+	<line stroke="black" stroke-opacity="1" x1="591" y1="150" x2="591" y2="178" />
+	<polygon fill="#ffffff" stroke="black" stroke-opacity="1" points="591,150 597,156 591,162 585,156" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="189" y1="299" x2="186" y2="307" />
+	<line stroke="black" stroke-opacity="1" x1="189" y1="299" x2="197" y2="301" />
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="266" y1="444" x2="189" y2="299" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="142" y1="387" x2="144" y2="395" />
+	<line stroke="black" stroke-opacity="1" x1="142" y1="387" x2="150" y2="384" />
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="266" y1="459" x2="142" y2="387" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="435" y1="350" x2="429" y2="344" />
+	<line stroke="black" stroke-opacity="1" x1="435" y1="350" x2="429" y2="356" />
+	<line stroke="black" stroke-opacity="1" x1="369" y1="350" x2="435" y2="350" />
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="179" y="18">sql_mapper</text>
+</g>
+<g>
+	<text font-family="Arial" font-size="11" fill="#000000" xml:space="preserve" x="386" y="337">config</text>
+</g>
+</svg>

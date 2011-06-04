@@ -1,0 +1,30 @@
+Graffiti ToDo List
+==================
+
+- generalize RDF storage, implement SPARQL
+- unit, functional, and performance test suite (in progress)
+- separate library for RDF storage (done)
+- investigate alternative backends: FramerD, 3store, Redland
+  -- depends on separate library for RDF storage
+  -- depends on test suite
+- security: Squish literal condition safety (done), limited number of
+  query clauses (done), dry-run of user-defined query, approvable
+  resource usage
+- query result set representation
+- optional patterns and negation (done)
+- parametrized queries (done)
+  -- cache prepared statements
+- support blob literals
+  -- depends on parametrized queries
+- vocabulary entailment: RDF, RDFS, OWL
+- RDF aggregates storage internalization (Seq, Bag, Alt)
+- query introspection
+- storage workflow control (triggers)
+- transparent (structured) RDF query storage
+  -- depends on RDF aggregates storage
+  -- depends on storage workflow control
+- subqueries (query premise)
+  -- depends on transparent query storage
+- chain queries
+  -- depends on native RDF storage
+
