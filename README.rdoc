@@ -80,7 +80,7 @@ Assert statement will only update one solution per invocation, if more
 solutions match the graph pattern, only the first will be updated.
 
 
-== Relational Data ==
+== Relational Data
 
 Relational data has to be adapted for RDF access using Graffiti. The
 adaptation is non-intrusive and will not break compatibility with
