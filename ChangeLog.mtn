@@ -1,0 +1,233 @@
+-----------------------------------------------------------------
+Revision: 5f07d75e7786d56d30659b04ac0091fc8bc37fda
+Ancestor: e13812ed0f84c7e722284750df4ac1a8ef81a501
+Author: angdraug@debian.org
+Date: 2009-10-11T12:23:07
+Branch: graffiti-head
+
+Deleted entries:
+        doc/diagrams/graffiti_classes.dia
+Added files:
+        doc/diagrams/graffiti-classes.svg
+        doc/diagrams/graffiti-deployment.svg
+        doc/diagrams/graffiti-store-sequence.svg
+        doc/diagrams/squish-select-sequence.svg
+
+ChangeLog: 
+
+replaced the old Dia diagram with SVG diagrams produced with BoUML
+
+-----------------------------------------------------------------
+Revision: e13812ed0f84c7e722284750df4ac1a8ef81a501
+Ancestor: e364f136ecc00b4559a0f0d07f257886f48ae4ef
+Author: angdraug@debian.org
+Date: 2009-09-06T13:47:40
+Branch: graffiti-head
+
+Modified files:
+        README.rdoc
+
+ChangeLog: 
+
+relational data adaptation instructions added
+
+-----------------------------------------------------------------
+Revision: e364f136ecc00b4559a0f0d07f257886f48ae4ef
+Ancestor: f2ef2d91fb1e29ee91928b5ebf52c22b09def60b
+Author: angdraug@debian.org
+Date: 2009-09-06T13:22:12
+Branch: graffiti-head
+
+Modified files:
+        README.rdoc
+
+ChangeLog: 
+
+update language description added
+
+-----------------------------------------------------------------
+Revision: f2ef2d91fb1e29ee91928b5ebf52c22b09def60b
+Ancestor: c5c5ad50f2f0e1159628804eb141c60977483fb7
+Author: angdraug@debian.org
+Date: 2009-09-06T13:12:45
+Branch: graffiti-head
+
+Modified files:
+        README.rdoc
+
+ChangeLog: 
+
+query language description added
+
+-----------------------------------------------------------------
+Revision: c5c5ad50f2f0e1159628804eb141c60977483fb7
+Ancestor: c6389322361c36538d626257f8dd957864e7b85e
+Author: angdraug@debian.org
+Date: 2009-08-22T12:38:32
+Branch: graffiti-head
+
+Modified files:
+        TODO lib/graffiti/rdf_config.rb
+        lib/graffiti/rdf_property_map.rb lib/graffiti/sql_mapper.rb
+
+ChangeLog: 
+
+move setting of subproperty_of and transitive_closure outside of the RdfPropertyMap constructor; documented some missing pieces
+
+-----------------------------------------------------------------
+Revision: c6389322361c36538d626257f8dd957864e7b85e
+Ancestor: 41a4f5d475227a9df9aae268506bcdb2dbf2e6ab
+Author: angdraug@debian.org
+Date: 2009-08-22T12:37:03
+Branch: graffiti-head
+
+Modified files:
+        lib/graffiti/squish.rb
+
+ChangeLog: 
+
+use @db, db shortcut is no longer available
+
+-----------------------------------------------------------------
+Revision: 41a4f5d475227a9df9aae268506bcdb2dbf2e6ab
+Ancestor: bed7201b8512540b0c225add168a66b18cfad5f3
+Author: angdraug@debian.org
+Date: 2009-08-05T13:16:50
+Branch: graffiti-head
+
+Modified files:
+        lib/graffiti/squish.rb
+
+ChangeLog: 
+
+allow PostgreSQL full text search operators in expressions
+
+-----------------------------------------------------------------
+Revision: bed7201b8512540b0c225add168a66b18cfad5f3
+Ancestor: 3538ff90e492811cd2c022cf6502439090241d8e
+Author: angdraug@debian.org
+Date: 2009-08-02T14:34:09
+Branch: graffiti-head
+
+Modified files:
+        lib/graffiti/sql_mapper.rb
+
+ChangeLog: 
+
+move SqlNodeBinding and SqlExpression out of SqlMapper namespace; move exception raising into check_graph
+
+-----------------------------------------------------------------
+Revision: 3538ff90e492811cd2c022cf6502439090241d8e
+Ancestor: ad944a53e855766391fb1840b09cc47eac78f911
+Author: angdraug@debian.org
+Date: 2009-07-30T08:50:54
+Branch: graffiti-head
+
+Added files:
+        lib/graffiti/exceptions.rb lib/graffiti/rdf_config.rb
+        lib/graffiti/rdf_property_map.rb lib/graffiti/sql_mapper.rb
+        lib/graffiti/squish.rb lib/graffiti/store.rb
+Added directories:
+        lib/graffiti
+Modified files:
+        lib/graffiti.rb
+
+ChangeLog: 
+
+split Graffiti classes into their own .rb files
+
+-----------------------------------------------------------------
+Revision: ad944a53e855766391fb1840b09cc47eac78f911
+Ancestor: 35e3b7019eda146e755449c86f2b04f035796608
+Author: angdraug@debian.org
+Date: 2009-07-28T12:42:47
+Branch: graffiti-head
+
+Modified files:
+        README.rdoc
+
+ChangeLog: 
+
+mention SynCache in README.rdoc
+
+-----------------------------------------------------------------
+Revision: 35e3b7019eda146e755449c86f2b04f035796608
+Ancestor: 7eeecf40a8f1e0127ecc6d2f818bd6d80e0b1f90
+Author: angdraug@debian.org
+Date: 2009-07-28T10:56:06
+Branch: graffiti-head
+
+Modified files:
+        README.rdoc lib/graffiti.rb test/ts_graffiti.rb
+
+ChangeLog: 
+
+module initialization fixes
+
+-----------------------------------------------------------------
+Revision: 7eeecf40a8f1e0127ecc6d2f818bd6d80e0b1f90
+Ancestor: 35efa8b3fb65bbe7744fc930dc3ceb5a98564a98
+Author: angdraug@debian.org
+Date: 2009-07-28T10:45:31
+Branch: graffiti-head
+
+Modified files:
+        README.rdoc
+
+ChangeLog: 
+
+minor documentation cleanup
+
+-----------------------------------------------------------------
+Revision: 35efa8b3fb65bbe7744fc930dc3ceb5a98564a98
+Ancestor: 60fc13b5ffccadc9990d5303de93e71be30128bb
+Author: angdraug@debian.org
+Date: 2009-07-28T10:38:48
+Branch: graffiti-head
+
+Added files:
+        doc/diagrams/graffiti_classes.dia
+Added directories:
+        doc/diagrams
+Modified files:
+        README.rdoc
+
+ChangeLog: 
+
+documentation update
+
+-----------------------------------------------------------------
+Revision: 60fc13b5ffccadc9990d5303de93e71be30128bb
+Ancestor: abd14a047ad68bc4e92ca80916e71a39f605b14c
+Author: angdraug@debian.org
+Date: 2009-07-27T19:20:47
+Branch: graffiti-head
+
+Renamed entries:
+        doc/examples/samizdat-triggers-pgsql-sql to doc/examples/samizdat-triggers-pgsql.sql
+
+ChangeLog: 
+
+fixed .sql extension for triggers example
+
+-----------------------------------------------------------------
+Revision: abd14a047ad68bc4e92ca80916e71a39f605b14c
+Ancestor: 
+Author: angdraug@debian.org
+Date: 2009-07-27T19:16:55
+Branch: graffiti-head
+
+Added files:
+        COPYING README.rdoc TODO
+        doc/examples/samizdat-rdf-config.yaml
+        doc/examples/samizdat-triggers-pgsql-sql
+        doc/papers/collreif.tex doc/papers/rel-rdf.tex
+        doc/rdf-impl-report.txt lib/graffiti.rb setup.rb
+        test/ts_graffiti.rb
+Added directories:
+        . doc doc/examples doc/papers lib test
+
+ChangeLog: 
+
+initial checkin: Graffiti is a spin-off of storage.rb from Samizdat project
+
