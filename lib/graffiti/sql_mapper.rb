@@ -54,6 +54,8 @@ class SqlExpression < DelegateClass(Array)
     '(' << self.join(' ') << ')'
   end
 
+  alias :to_str :to_s
+
   def traverse(&block)
     self.each do |part|
       case part
