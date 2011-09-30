@@ -14,18 +14,19 @@
 
 require 'syncache'
 require 'graffiti/exceptions'
+require 'graffiti/debug'
 require 'graffiti/rdf_config'
 require 'graffiti/squish'
 
 module Graffiti
 
-# DBI-like interface for the RDF storage.
+# API for the RDF storage access similar to DBI or Sequel
 #
 class Store
 
   # initialize class attributes
   #
-  # _db_ is a DBI database handle
+  # _db_ is a Sequel database handle
   #
   # _config_ is a hash of configuraiton options for RdfConfig
   #
@@ -50,49 +51,49 @@ class Store
   # get value of subject's property
   #
   def get_property(subject, property)
-    object, = select_one %{
-SELECT ?object WHERE (#{property} #{subject} ?object)}
-    object
+    fetch(%{SELECT ?object WHERE (#{property} :subject ?object)},
+          :subject => subject).get(:object)
+  end
+
+  def fetch(query, params={})
+    @db.fetch(select(query), params)
   end
 
   # get one query answer (similar to DBI#select_one)
   #
   def select_one(query, params={})
-    @db.select_one(*select(query, params))
+    fetch(query, params).first
   end
 
   # get all query answers (similar to DBI#select_all)
   #
   def select_all(query, limit=nil, offset=nil, params={}, &p)
-    sql, *values = select(query, params)
-    sql = sql.dup
-    sql << "\nLIMIT #{limit}" if limit
-    sql << "\nOFFSET #{offset}" if offset
+    ds = fetch(query, params).limit(limit, offset)
     if block_given?
-      @db.select_all sql, *values, &p
+      ds.all(&p)
     else
-      @db.select_all sql, *values
+      ds.all
     end
   end
 
   # accepts String or pre-parsed SquishQuery object, caches SQL by String
   #
-  def select(query, params={})
+  def select(query)
     query.kind_of?(String) and
       query = @select_cache.fetch_or_add(query) { SquishSelect.new(@config, query) }
     query.kind_of?(SquishSelect) or raise ProgrammingError,
       "String or SquishSelect expected"
-    query.to_sql(params)
+    query.to_sql
   end
 
   # merge Squish query into RDF database
   #
   # returns list of new ids assigned to blank nodes listed in INSERT section
   #
-  # always run it inside transaction, with AutoCommit disabled
-  #
   def assert(query, params={})
-    SquishAssert.new(@db, @config, query).assert(params)
+    @db.transaction do
+      SquishAssert.new(@config, query).run(@db, params)
+    end
   end
 end
 

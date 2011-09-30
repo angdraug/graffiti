@@ -35,6 +35,7 @@ class RdfConfig
         p = ns_expand(p)
         map = @map[p] or raise RuntimeError,
           "Incorrect RDF storage configuration: superproperty #{p} must be mapped"
+        map.superproperty = true
 
         qualifier = RdfPropertyMap.qualifier_property(p)
         @map[qualifier] = RdfPropertyMap.new(

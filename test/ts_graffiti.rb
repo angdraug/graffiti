@@ -12,6 +12,7 @@
 
 require 'test/unit'
 require 'yaml'
+require 'sequel'
 require 'graffiti'
 
 include Graffiti
@@ -25,7 +26,8 @@ class TC_Storage < Test::Unit::TestCase
         'doc', 'examples', 'samizdat-rdf-config.yaml'
       )
     ) {|f| YAML.load(f.read) }
-    @store = Store.new(nil, config)
+    @db = create_mock_db
+    @store = Store.new(@db, config)
     @ns = @store.config.ns
   end
 
@@ -44,13 +46,13 @@ LITERAL ?rating >= -1
 ORDER BY ?rating DESC
 USING PRESET NS}
 
-    sql = "SELECT DISTINCT c.id, c.title, b.full_name, d.published_date, a.rating
-FROM Statement AS a
-INNER JOIN Message AS c ON (c.id = a.subject)
-INNER JOIN Member AS b ON (c.creator = b.id)
-INNER JOIN Resource AS d ON (c.id = d.id)
-INNER JOIN Resource AS e ON (a.object = e.id) AND (e.literal = 'false' AND e.uriref = 'true' AND e.label = 'http://www.nongnu.org/samizdat/rdf/schema#Quality')
-INNER JOIN Resource AS f ON (a.predicate = f.id) AND (f.literal = 'false' AND f.uriref = 'true' AND f.label = 'http://purl.org/dc/elements/1.1/relation')
+    sql = "SELECT DISTINCT c.id AS msg, c.title AS title, b.full_name AS name, d.published_date AS date, a.rating AS rating
+FROM statement AS a
+INNER JOIN message AS c ON (c.id = a.subject)
+INNER JOIN member AS b ON (c.creator = b.id)
+INNER JOIN resource AS d ON (c.id = d.id)
+INNER JOIN resource AS e ON (a.object = e.id) AND (e.uriref = 't' AND e.label = 'http://www.nongnu.org/samizdat/rdf/schema#Quality')
+INNER JOIN resource AS f ON (a.predicate = f.id) AND (f.uriref = 't' AND f.label = 'http://purl.org/dc/elements/1.1/relation')
 WHERE (a.id IS NOT NULL)
 AND (d.published_date IS NOT NULL)
 AND (b.full_name IS NOT NULL)
@@ -66,38 +68,76 @@ ORDER BY a.rating DESC"
       assert_equal 'DESC', query.order_dir
       assert_equal @ns['s'], query.ns['s']
     end
+
+    assert_equal [], @store.select_all(squish)
   end
 
   def test_query_assert
     # initialize
     query_text = %{
 INSERT ?msg
-UPDATE ?title = 'Test Message', ?content = 'Some text.'
+UPDATE ?title = 'Test Message', ?content = 'Some ''text''.'
 WHERE (dc::creator ?msg 1)
       (dc::title ?msg ?title)
       (s::content ?msg ?content)
 USING dc FOR #{@ns['dc']}
       s FOR #{@ns['s']}}
     begin
-      query = SquishAssert.new(nil, @store.config, query_text)
+      query = SquishAssert.new(@store.config, query_text)
     rescue
       assert false, "SquishAssert initialization raised #{$!.class}: #{$!}"
     end
 
     # query parser
-    assert_equal [['?msg'], {'?title' => "'0'", '?content' => "'1'"}],
-      query.nodes
+    assert_equal ['?msg'], query.insert
+    assert_equal({'?title' => "'0'", '?content' => "'1'"}, query.update)
     assert query.pattern.include?(["#{@ns['dc']}title", "?msg", "?title", nil, false])
     assert_equal @ns['s'], query.ns['s']
     assert_equal "'Test Message'", query.substitute_literals("'0'")
-    assert_equal "'Some text.'", query.substitute_literals("'1'")
+    assert_equal "'Some ''text''.'", query.substitute_literals("'1'")
 
-    # SqlMapper
-    sql = ''
-    #assert_equal sql, query.to_sql.first.gsub(/\s+/, ' ')
+    # mock db
+    ids = @store.assert(query_text)
+    assert_equal [1], ids
+    assert_equal 'Test Message', @db[:Message][:id => 1][:title]
 
-    # todo: check assert against MockDb
+    id2 = @store.assert(query_text)
+    query_text = %{
+UPDATE ?rating = :rating
+WHERE (rdf::subject ?stmt :related)
+      (rdf::predicate ?stmt dc::relation)
+      (rdf::object ?stmt 1)
+      (s::voteProposition ?vote ?stmt)
+      (s::voteMember ?vote :member)
+      (s::voteRating ?vote ?rating)}
+    params = {:rating => -1, :related => 2, :member => 3}
+    ids = @store.assert(query_text, params)
+    assert_equal [], ids
+    assert vote = @db[:vote].order(:id).last
+    assert_equal -1, vote[:rating].to_i
+
+    params[:rating] = -2
+    @store.assert(query_text, params)
+    assert vote2 = @db[:vote].order(:id).last
+    assert_equal -2, vote2[:rating].to_i
+    assert_equal vote[:id], vote2[:id]
   end
+
+  def test_query_assert_expression
+    query_text = %{
+UPDATE ?rating = 2 * :rating
+WHERE (rdf::subject ?stmt :related)
+      (rdf::predicate ?stmt dc::relation)
+      (rdf::object ?stmt 1)
+      (s::voteProposition ?vote ?stmt)
+      (s::voteMember ?vote :member)
+      (s::voteRating ?vote ?rating)}
+    params = {:rating => -1, :related => 2, :member => 3}
+    @store.assert(query_text, params)
+    assert vote = @db[:vote].order(:id).last
+    assert_equal -2, vote[:rating].to_i
+  end
+  private :test_query_assert_expression
 
   def test_dangling_blank_node
     squish = %{
@@ -105,9 +145,9 @@ SELECT ?msg
 WHERE (s::inReplyTo ?msg ?parent)
 USING s FOR #{@ns['s']}}
 
-    sql = "SELECT DISTINCT a.id
-FROM Resource AS a
-INNER JOIN Resource AS b ON (a.part_of_subproperty = b.id) AND (b.literal = 'false' AND b.uriref = 'true' AND b.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
+    sql = "SELECT DISTINCT a.id AS msg
+FROM resource AS a
+INNER JOIN resource AS b ON (a.part_of_subproperty = b.id) AND (b.uriref = 't' AND b.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
 WHERE (a.id IS NOT NULL)"
 
     test_squish_select(squish, sql) do |query|
@@ -120,10 +160,10 @@ WHERE (a.id IS NOT NULL)"
   def test_external_resource_no_self_join
     squish = %{SELECT ?id WHERE (s::id tag::Translation ?id)}
 
-    sql = "SELECT DISTINCT a.id
-FROM Resource AS a
+    sql = "SELECT DISTINCT a.id AS id
+FROM resource AS a
 WHERE (a.id IS NOT NULL)
-AND ((a.literal = 'false' AND a.uriref = 'true' AND a.label = 'http://www.nongnu.org/samizdat/rdf/tag#Translation'))"
+AND ((a.uriref = 't' AND a.label = 'http://www.nongnu.org/samizdat/rdf/tag#Translation'))"
 
     test_squish_select(squish, sql) do |query|
       assert_equal %w[?id], query.nodes
@@ -147,16 +187,16 @@ EXCEPT (s::inReplyTo ?msg ?parent)
        (dc::creator ?version_of 1)
 ORDER BY ?date DESC}
 
-    sql = "SELECT DISTINCT b.id, b.published_date
-FROM Resource AS b
+    sql = "SELECT DISTINCT b.id AS msg, b.published_date AS date
+FROM resource AS b
 LEFT JOIN (
     SELECT b.id AS _field_f
-    FROM Message AS a
-    INNER JOIN Resource AS b ON (b.part_of = a.id)
-    INNER JOIN Resource AS c ON (b.part_of_subproperty = c.id) AND (c.literal = 'false' AND c.uriref = 'true' AND c.label = 'http://purl.org/dc/terms/isVersionOf')
+    FROM message AS a
+    INNER JOIN resource AS b ON (b.part_of = a.id)
+    INNER JOIN resource AS c ON (b.part_of_subproperty = c.id) AND (c.uriref = 't' AND c.label = 'http://purl.org/dc/terms/isVersionOf')
     WHERE (a.creator = 1)
 ) AS _subquery_a ON (b.id = _subquery_a._field_f)
-LEFT JOIN Resource AS d ON (b.part_of_subproperty = d.id) AND (d.literal = 'false' AND d.uriref = 'true' AND d.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
+LEFT JOIN resource AS d ON (b.part_of_subproperty = d.id) AND (d.uriref = 't' AND d.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
 WHERE (b.published_date IS NOT NULL)
 AND (b.id IS NOT NULL)
 AND (_subquery_a._field_f IS NULL)
@@ -174,17 +214,17 @@ WHERE (rdf::predicate ?stmt dc::relation)
       (rdf::object ?stmt ?tag)
       (dc::date ?stmt ?date)
       (s::rating ?stmt ?rating FILTER ?rating >= 1.5)
-      (s::hidden ?msg ?hidden FILTER ?hidden = 'false')
+      (s::hidden ?msg ?hidden FILTER ?hidden = 'f')
 EXCEPT (dct::isPartOf ?msg ?parent)
 GROUP BY ?msg
 ORDER BY max(?date) DESC}
 
-    sql = "SELECT DISTINCT a.subject, max(b.published_date)
-FROM Statement AS a
-INNER JOIN Resource AS b ON (a.id = b.id)
-INNER JOIN Message AS c ON (a.subject = c.id) AND (c.hidden = 'false')
-INNER JOIN Resource AS d ON (a.subject = d.id)
-INNER JOIN Resource AS e ON (a.predicate = e.id) AND (e.literal = 'false' AND e.uriref = 'true' AND e.label = 'http://purl.org/dc/elements/1.1/relation')
+    sql = "SELECT DISTINCT a.subject AS msg, max(b.published_date)
+FROM statement AS a
+INNER JOIN resource AS b ON (a.id = b.id)
+INNER JOIN message AS c ON (a.subject = c.id) AND (c.hidden = 'f')
+INNER JOIN resource AS d ON (a.subject = d.id)
+INNER JOIN resource AS e ON (a.predicate = e.id) AND (e.uriref = 't' AND e.label = 'http://purl.org/dc/elements/1.1/relation')
 WHERE (c.hidden IS NOT NULL)
 AND (b.published_date IS NOT NULL)
 AND (a.object IS NOT NULL)
@@ -208,11 +248,11 @@ OPTIONAL (dc::creator 1 ?creator)
          (s::hidden 1 ?hidden)
          (s::openForAll 1 ?open)}
 
-    sql = "SELECT DISTINCT a.published_date, b.creator, b.language, select_subproperty(a.part_of, d.id), select_subproperty(a.part_of, c.id), b.hidden, b.open
-FROM Resource AS a
-INNER JOIN Message AS b ON (a.id = b.id)
-LEFT JOIN Resource AS c ON (a.part_of_subproperty = c.id) AND (c.literal = 'false' AND c.uriref = 'true' AND c.label = 'http://purl.org/dc/terms/isVersionOf')
-LEFT JOIN Resource AS d ON (a.part_of_subproperty = d.id) AND (d.literal = 'false' AND d.uriref = 'true' AND d.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
+    sql = "SELECT DISTINCT a.published_date AS date, b.creator AS creator, b.language AS lang, select_subproperty(a.part_of, d.id) AS parent, select_subproperty(a.part_of, c.id) AS version_of, b.hidden AS hidden, b.open AS open
+FROM resource AS a
+INNER JOIN message AS b ON (a.id = b.id)
+LEFT JOIN resource AS c ON (a.part_of_subproperty = c.id) AND (c.uriref = 't' AND c.label = 'http://purl.org/dc/terms/isVersionOf')
+LEFT JOIN resource AS d ON (a.part_of_subproperty = d.id) AND (d.uriref = 't' AND d.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
 WHERE (a.published_date IS NOT NULL)
 AND ((a.id = 1))"
 
@@ -232,11 +272,11 @@ OPTIONAL (dct::isPartOf ?tag ?supertag TRANSITIVE)
 LITERAL ?tag = 1 OR ?supertag = 1
 ORDER BY ?date DESC}
 
-    sql = "SELECT DISTINCT a.subject, b.published_date
-FROM Statement AS a
-INNER JOIN Resource AS b ON (a.subject = b.id)
-INNER JOIN Resource AS d ON (a.predicate = d.id) AND (d.literal = 'false' AND d.uriref = 'true' AND d.label = 'http://purl.org/dc/elements/1.1/relation')
-LEFT JOIN Part AS c ON (a.object = c.id)
+    sql = "SELECT DISTINCT a.subject AS msg, b.published_date AS date
+FROM statement AS a
+INNER JOIN resource AS b ON (a.subject = b.id)
+INNER JOIN resource AS d ON (a.predicate = d.id) AND (d.uriref = 't' AND d.label = 'http://purl.org/dc/elements/1.1/relation')
+LEFT JOIN part AS c ON (a.object = c.id)
 WHERE (a.id IS NOT NULL)
 AND (b.published_date IS NOT NULL)
 AND (a.rating IS NOT NULL)
@@ -258,9 +298,9 @@ OPTIONAL (s::rruleEvent ?rrule ?event)
 LITERAL ?dtend > 'now' OR ?rrule IS NOT NULL
 ORDER BY ?event DESC}
 
-    sql = "SELECT DISTINCT b.id
-FROM Event AS b
-LEFT JOIN Recurrence AS a ON (b.id = a.event) AND (a.until IS NULL OR a.until > 'now')
+    sql = "SELECT DISTINCT b.id AS event
+FROM event AS b
+LEFT JOIN recurrence AS a ON (b.id = a.event) AND (a.until IS NULL OR a.until > 'now')
 WHERE (b.dtstart IS NOT NULL)
 AND ((b.dtstart >= 'now'))
 AND (b.dtend > 'now' OR a.id IS NOT NULL)
@@ -268,6 +308,7 @@ ORDER BY b.id DESC"
 
     test_squish_select(squish, sql)
   end
+  private :test_optional_connect_by_object
 
   def test_many_to_many
     # pretend that Vote is a many-to-many relation table
@@ -278,10 +319,10 @@ WHERE (s::voteRating ?p ?vote1 FILTER ?vote1 > 0)
       (dc::date ?p ?date)
 ORDER BY ?date DESC}
 
-    sql = "SELECT DISTINCT a.id, c.published_date
-FROM Vote AS a
-INNER JOIN Vote AS b ON (a.id = b.id) AND (b.rating < 0)
-INNER JOIN Resource AS c ON (a.id = c.id)
+    sql = "SELECT DISTINCT a.id AS p, c.published_date AS date
+FROM vote AS a
+INNER JOIN vote AS b ON (a.id = b.id) AND (b.rating < 0)
+INNER JOIN resource AS c ON (a.id = c.id)
 WHERE (c.published_date IS NOT NULL)
 AND (a.rating IS NOT NULL)
 AND (b.rating IS NOT NULL)
@@ -289,6 +330,31 @@ AND ((a.rating > 0))
 ORDER BY c.published_date DESC"
 
     test_squish_select(squish, sql)
+  end
+
+  def test_update_null_and_subproperty
+    query_text =
+      %{INSERT ?msg
+      UPDATE ?parent = :parent
+      WHERE (dct::isPartOf ?msg ?parent)}
+    @store.assert(query_text, :id => 1, :parent => 3)
+    assert_equal 3, @db[:resource].filter(:id => 1).get(:part_of)
+
+    # check that subproperty is set
+    query_text =
+      %{UPDATE ?parent = :parent
+      WHERE (s::subTagOf :id ?parent)}
+    @store.assert(query_text, :id => 1, :parent => 3)
+    assert_equal 3, @db[:resource].filter(:id => 1).get(:part_of)
+    assert_equal 2, @db[:resource].filter(:id => 1).get(:part_of_subproperty)
+
+    # check that NULL is handled correctly and that subproperty is unset
+    query_text =
+      %{UPDATE ?parent = NULL
+      WHERE (dct::isPartOf :id ?parent)}
+    @store.assert(query_text, :id => 1)
+    assert_equal nil, @db[:resource].filter(:id => 1).get(:part_of)
+    assert_equal nil, @db[:resource].filter(:id => 1).get(:part_of_subproperty)
   end
 
   private
@@ -316,13 +382,74 @@ ORDER BY c.published_date DESC"
     assert sql1 == sql2
 
     # transform result
-    assert_equal normalize(sql), normalize(sql1.first),
-      "Query doesn't match. Expected:\n#{sql}\nReceived:\n#{sql1.first}"
+    assert_equal normalize(sql), normalize(sql1),
+      "Query doesn't match. Expected:\n#{sql}\nReceived:\n#{sql1}"
   end
 
   def normalize(sql)
     # alias labels and where conditions may be reordered, but the query string
     # length should remain the same
     sql.size
+  end
+
+  def create_mock_db
+    db = Sequel.sqlite(:quote_identifiers => false)
+
+    db.create_table(:resource) do
+      primary_key :id
+      Time :published_date
+      Integer :part_of
+      Integer :part_of_subproperty
+      Integer :part_sequence_number
+      TrueClass :literal
+      TrueClass :uriref
+      String :label
+    end
+
+    db.create_table(:statement) do
+      primary_key :id
+      Integer :subject
+      Integer :predicate
+      Integer :object
+      BigDecimal :rating, :size => [4, 2]
+    end
+
+    db.create_table(:member) do
+      primary_key :id
+      String :login
+      String :full_name
+      String :email
+    end
+
+    db.create_table(:message) do
+      primary_key :id
+      String :title
+      Integer :creator
+      String :format
+      String :language
+      TrueClass :open
+      TrueClass :hidden
+      TrueClass :locked
+      String :content
+      String :html_full
+      String :html_short
+    end
+
+    db.create_table(:vote) do
+      primary_key :id
+      Integer :proposition
+      Integer :member
+      BigDecimal :rating, :size => 2
+    end
+
+    db
+  end
+
+  def create_mock_member(db)
+    db[:member].insert(
+      :login => 'test',
+      :full_name => 'test',
+      :email => 'test@localhost'
+    )
   end
 end

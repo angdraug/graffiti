@@ -92,6 +92,7 @@ end
 # Transform RDF query pattern graph into a relational join expression.
 #
 class SqlMapper
+  include Debug
 
   def initialize(config, pattern, negative = [], optional = [], global_filter = '')
     @config = config
@@ -165,19 +166,6 @@ class SqlMapper
 
   private
 
-  DEBUG = false
-
-  def debug(message = nil)
-    return unless DEBUG
-
-    log message if message
-    log yield if block_given?
-  end
-
-  def log(message)
-    $stderr << 'Graffiti: ' << message.to_s << "\n"
-  end
-
   # Check whether pattern is not a disjoint graph (all nodes are
   # undirectionally reachable from one node).
   #
@@ -222,7 +210,7 @@ class SqlMapper
 
     refine_ambiguous_properties
 
-    if DEBUG
+    debug do
       @nodes.each do |node, n|
         debug %{#{node}: #{n[:bind_mode]} #{n[:colors].inspect}}
       end
@@ -324,8 +312,8 @@ class SqlMapper
         (subject =~ SquishQuery::BN or
          subject =~ SquishQuery::INTERNAL or
          subject =~ SquishQuery::PARAMETER or
-         'Resource' == map.table)
-        # internal predicate and subject is mappable to Resource table
+         'resource' == map.table)
+        # internal predicate and subject is mappable to resource table
 
         i = clauses.size
 
@@ -559,22 +547,21 @@ class SqlMapper
             next unless :subject == p[:role]
 
             c = @clauses[ p[:clause] ]
-            if 'Resource' == c[:map].table
-              r = c[:alias]   # reuse existing mapping to Resource table
+            if 'resource' == c[:map].table
+              r = c[:alias]   # reuse existing mapping to resource table
               break
             end
           end
 
           if r.nil?
-            r = next_alias('Resource', node)
+            r = next_alias('resource', node)
             r_binding = SqlNodeBinding.new(r, 'id')
             @bindings[node].unshift(r_binding)
             @jc.push([ binding, r_binding, node ])
           end
 
           @aliases[r][:filter].push SqlExpression.new(
-            SqlNodeBinding.new(r, 'literal'), '=', "'false'", 'AND',
-            SqlNodeBinding.new(r, 'uriref'), '=', "'true'", 'AND',
+            SqlNodeBinding.new(r, 'uriref'), '=', "'t'", 'AND',
             SqlNodeBinding.new(r, 'label'), '=', %{'#{node}'})
 
         else
@@ -586,7 +573,7 @@ class SqlMapper
       end
     end
 
-    if DEBUG
+    debug do
       @aliases.each {|alias_name, a| debug %{#{alias_name}: #{a.inspect}} }
       @jc.each {|jc| debug jc.inspect }
     end

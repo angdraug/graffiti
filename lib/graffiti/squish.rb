@@ -23,6 +23,8 @@ module Graffiti
 # functions to deal with Squish syntax
 #
 class SquishQuery
+  include Debug
+
   # regexp for internal resource reference
   INTERNAL = Regexp.new(/\A([[:digit:]]+)\z/).freeze
 
@@ -36,7 +38,13 @@ class SquishQuery
   PARAMETER = Regexp.new(/\A:([[:alnum:]_]+)\z/).freeze
 
   # regexp for replaced string literal
-  LITERAL = Regexp.new(/\A'\d+'\z/).freeze
+  LITERAL = Regexp.new(/\A'(\d+)'\z/).freeze
+
+  # regexp for scanning replaced string literals in a string
+  LITERAL_SCAN = Regexp.new(/'(\d+)'/).freeze
+
+  # regexp for scanning query parameters inside a string
+  PARAMETER_AND_LITERAL_SCAN = Regexp.new(/\B:([[:alnum:]_]+)|'(\d+)'/).freeze
 
   # regexp for number
   NUMBER = Regexp.new(/\A-?[[:digit:]]+(\.[[:digit:]]+)?\z/).freeze
@@ -63,7 +71,6 @@ class SquishQuery
   def initialize(config, query)
     query.nil? and raise ProgrammingError, "SquishQuery: query can't be nil"
     if query.kind_of? Hash   # pre-parsed query (used by SquishAssert)
-      @type = query[:type]
       @nodes = query[:nodes]
       @pattern = query[:pattern]
       @negative = query[:negative]
@@ -77,13 +84,14 @@ class SquishQuery
         "Bad query initialization parameter class: #{query.class}"
     end
 
+    debug { query }
     @query = query   # keep original string
     query = query.dup
 
     # replace string literals with 'n' placeholders (also see #substitute_literals)
     @strings = []
-    query.gsub!(/'(''|[^'])*'/m) do
-      @strings.push $&
+    query.gsub!(/'((?:''|[^'])*)'/m) do
+      @strings.push $1.gsub("''", "'")   # keep unescaped string
       "'" + (@strings.size - 1).to_s + "'"
     end
 
@@ -114,45 +122,6 @@ class SquishQuery
     # check that all variables can be bound
     @variables = query.scan(BN_SCAN)
     @variables.each {|node| @sql_mapper.bind(node) }
-
-    # determine query type, parse and validate nodes section
-    if 'SELECT' == @key
-      @type = :select
-      @nodes = @nodes.split(/\s*,\s*/).collect {|node|
-        validate_expression(node)
-        node
-      }
-
-    else
-      @type = :assert
-
-      if 'UPDATE' == @key
-        insert = ''
-        update = @nodes
-
-      elsif 'INSERT' == @key and @nodes =~ /\A\s*(.*?)\s*(?:\bUPDATE\b\s*(.*?))?\s*\z/
-        insert, update = $1, $2.to_s
-
-      else
-        raise ProgrammingError,
-          "Query doesn't start with one of SELECT, INSERT, or UPDATE"
-      end
-
-      insert = insert.split(/\s*,\s*/).each {|s|
-        s =~ BN or raise ProgrammingError,
-          "Blank node expected in INSERT section instead of '#{s}'"
-      }
-
-      update = update.empty? ? {} : Hash[*update.split(/\s*,\s*/).collect {|s|
-        s.split(/\s*=\s*/)
-      }.each {|node, value|
-        node =~ BN or raise ProgrammingError,
-          "Blank node expected on the left side of UPDATE assignment instead of '#{bn}'"
-        validate_expression(value)
-      }.flatten!]
-
-      @nodes = [insert, update]
-    end
 
     return self
   end
@@ -191,8 +160,8 @@ class SquishQuery
   #
   def substitute_literals(s)
     return s unless s.kind_of? String
-    s.gsub(/'(\d+)'/) do
-      @strings[$1.to_i] or $&
+    s.gsub(LITERAL_SCAN) do
+      get_literal_value($1.to_i)
     end
   end
 
@@ -226,13 +195,14 @@ class SquishQuery
   #
   def validate_expression(string)
     # todo: lexical analyser
-    string.split(/[\s(),]+/).collect do |token|
+    string.split(/[\s(),]+/).each do |token|
       case token
       when '', BN, PARAMETER, LITERAL, NUMBER, OPERATOR, AGGREGATE
       else
         raise ProgrammingError, "Bad token '#{token}' in expression"
       end
     end
+    string
   end
 
   private
@@ -258,192 +228,212 @@ class SquishQuery
     end
   end
 
-  # replace RDF query parameters in SQL query with '?' marks,
-  # return resultant query and array of parameter values
+  # replace RDF query parameters with their values
   #
-  def substitute_parameters(sql, params={})
-    values = []
-    sql.gsub!(/\B:([[:alnum:]_]+)/) do   # see #PARAMETER
-      name = $1.to_sym
-      params.has_key?(name) or raise ProgrammingError,
-        "Missing value for :#{name} in parametrized query"
-      values.push(params[name])
-      '?'
+  def expression_value(expr, params={})
+    case expr
+    when 'NULL'
+      nil
+    when PARAMETER
+      get_parameter_value($1, params)
+    when LITERAL
+      @strings[$1.to_i]
+    else
+      expr.gsub(PARAMETER_AND_LITERAL_SCAN) do
+        if $1   # parameter
+          get_parameter_value($1, params)
+        else   # literal
+          get_literal_value($2.to_i)
+        end
+      end
+      # fixme: make Sequel treat it as SQL expression, not a string value
     end
-    [sql, values]
+  end
+
+  def get_parameter_value(name, params)
+    key = name.to_sym
+    params.has_key?(key) or raise ProgrammingError,
+      'Unknown parameter :' + name
+    params[key]
+  end
+
+  def get_literal_value(i)
+    "'" + @strings[i].gsub("'", "''") + "'"
   end
 end
 
 
 class SquishSelect < SquishQuery
-  # translate Squish SELECT query to SQL,
-  # return SQL query and a list of parameter values in proper order
-  #
-  def to_sql(params={})
-    raise ProgrammingError, "Wrong query type: select expected" unless
-      @type == :select
+  def initialize(config, query)
+    super(config, query)
 
+    if @key   # initialized from a String, not a Hash
+      'SELECT' == @key or raise ProgrammingError,
+        'Wrong query type: SELECT expected intead of ' + @key
+
+      @nodes = @nodes.split(/\s*,\s*/).map {|node|
+        validate_expression(node)
+      }
+    end
+  end
+
+  # translate Squish SELECT query to SQL
+  #
+  def to_sql
     where = @sql_mapper.where
 
     select = @nodes.dup
     select.push(@order) unless @order.empty? or @nodes.include?(@order)
 
     # now put it all together
-    sql = %{SELECT DISTINCT #{select.join(', ')}\nFROM #{@sql_mapper.from}}
+    sql = %{\nFROM #{@sql_mapper.from}}
     sql << %{\nWHERE #{where}} unless where.empty?
     sql << %{\nGROUP BY #{@group}} unless @group.empty?
     sql << %{\nORDER BY #{@order} #{@order_dir}} unless @order.empty?
 
-    # replace blank node names with bindings
-    sql.gsub!(BN_SCAN) {|node| @sql_mapper.bind(node) }
+    select = select.map do |expr|
+      bind_blank_nodes(expr) + (BN.match(expr) ? (' AS ' + $1) : '')
+    end
+    sql = 'SELECT DISTINCT ' << select.join(', ') << bind_blank_nodes(sql)
+
     sql =~ /\?/ and raise ProgrammingError,
       "Unexpected '?' in translated query (probably, caused by unmapped blank node): #{sql.gsub(/\s+/, ' ')};"
 
-    sql, values = substitute_parameters(sql, params)
-    [substitute_literals(sql), *values]
+    substitute_literals(sql)
+  end
+
+  private
+
+  # replace blank node names with bindings
+  #
+  def bind_blank_nodes(sql)
+    sql.gsub(BN_SCAN) {|node| @sql_mapper.bind(node) }
   end
 end
 
 
 class SquishAssert < SquishQuery
-  def initialize(db, config, query)
-    @db = db
+  def initialize(config, query)
     @config = config
-
     super(@config, query)
+
+    if 'UPDATE' == @key
+      @insert = ''
+      @update = @nodes
+
+    elsif 'INSERT' == @key and @nodes =~ /\A\s*(.*?)\s*(?:\bUPDATE\b\s*(.*?))?\s*\z/
+      @insert, @update = $1, $2.to_s
+
+    else
+      raise ProgrammingError,
+        "Wrong query type: INSERT or UPDATE expected instead of " + @key
+    end
+
+    @insert = @insert.split(/\s*,\s*/).each {|s|
+      s =~ BN or raise ProgrammingError,
+        "Blank node expected in INSERT section instead of '#{s}'"
+    }
+
+    @update = @update.empty? ? {} : Hash[*@update.split(/\s*,\s*/).collect {|s|
+      s.split(/\s*=\s*/)
+    }.each {|node, value|
+      node =~ BN or raise ProgrammingError,
+        "Blank node expected on the left side of UPDATE assignment instead of '#{bn}'"
+      validate_expression(value)
+    }.flatten!]
   end
 
-  def assert(params={})
-    raise ProgrammingError, 'Wrong query type: assert expected' unless
-      @type == :assert
+  def run(db, params={})
+    values = resource_values(db, params)
 
-    insert, update = @nodes
+    statements = []
+    alias_positions.each do |alias_, clauses|
+      statement = SquishAssertStatement.new(clauses, values)
+      statements.push(statement) if statement.action
+    end
+    SquishAssertStatement.run_ordered_statements(db, statements)
 
-    # Stage 1: Resources
-    v = {}   # v: node -> value
-    new = {} # new[node] if node was inserted into Resource at this stage and
-             # needs to be inserted into an internal resource table later
+    return @insert.collect {|node| values[node].value }
+  end
+
+  attr_reader :insert, :update
+
+  private
+
+  def resource_values(db, params)
+    values = {}
     @sql_mapper.nodes.each do |node, n|
+      new = false
 
       if node =~ INTERNAL   # internal resource
-        v[node] = $1   # resource id
+        value = $1.to_i   # resource id
 
-      elsif node =~ PARAMETER or node =~ LITERAL
-        v[node] = node   # pass parametrized value or string literal as is
+      elsif node =~ PARAMETER
+        value = get_parameter_value($1, params)
+
+      elsif node =~ LITERAL
+        value = @strings[$1.to_i]
 
       elsif node =~ BN
-        subject_position = n[:positions].collect {|p|
-          :subject == p[:role] ? p : nil
-        }.compact.first
+        subject_position = n[:positions].select {|p| :subject == p[:role] }.first
 
         if subject_position.nil?   # blank node occuring only in object position
-          v[node] = update[node] or raise ProgrammingError,
+          value = @update[node] or raise ProgrammingError,
             %{Blank node #{node} is undefined (drop it or set its value in UPDATE section)}
+          value = expression_value(value, params)
 
         else   # resource blank node
-          unless insert.include?(node)
+          unless @insert.include?(node)
             s = SquishSelect.new(
               @config, {
-                :type => :select,
                 :nodes => [node],
                 :pattern => subgraph(node),
                 :strings => @strings
               }
             )
-            v[node], = @db.select_one(*s.to_sql(params))
+            debug { db[s.to_sql, params].select_sql }
+            found = db.fetch(s.to_sql, params).first
           end
 
-          if v[node].nil?
-            # fixme: special case for table == Resource
-            @db.do "INSERT INTO Resource (label) VALUES (?)",
-              @sql_mapper.clauses[ subject_position[:clause] ][:map].table
-            v[node], = @db.select_one "SELECT MAX(id) FROM Resource"
-            new[node] = true
+          if found
+            value = found.values.first
+
+          else
+            table = @sql_mapper.clauses[ subject_position[:clause] ][:map].table
+            value = db[:resource].insert(:label => table)
+            debug { db[:resource].insert_sql(:label => table) }
+            new = true unless 'resource' == table
           end
         end
 
       else   # external resource
-        v[node], = @db.select_one "SELECT id FROM Resource
-          WHERE literal = 'false' AND uriref = 'true' AND label = ?", node
-
-        if v[node].nil?
-          @db.do "INSERT INTO Resource (uriref, label) VALUES ('true', ?)", node
-          v[node], = @db.select_one "SELECT MAX(id) FROM Resource"
+        uriref = { :uriref  => true, :label   => node }
+        found = db[:resource].filter(uriref).first
+        if found
+          value = found[:id]
+        else
+          value = db[:resource].insert(uriref)
+          debug { db[:resource].insert_sql(uriref) }
         end
       end
 
-      # by this point v[node] must be set
+      debug { node + ' = ' + value.inspect }
+      v = SquishAssertValue.new(value, new, @update.has_key?(node))
+      values[node] = v
     end
 
-    update.keys.each do |node|
-      @sql_mapper.nodes[node][:positions].each do |p|
-        next unless :object == p[:role]
+    debug { values.inspect }
+    values
+  end
 
-        map = @sql_mapper.clauses[ p[:clause] ][:map]
-        if map.subproperty_of
-          # when subproperty value is updated, update the qualifier as well
-          update[map.property] = v[map.property]
-        end
-      end
-    end
-
-    # Stage 2: Properties
-    a = {}   # a: alias -> positions*
+  def alias_positions
+    a = {}
     @sql_mapper.clauses.each_with_index do |clause, i|
       a[ clause[:alias] ] ||= []
       a[ clause[:alias] ].push(clause)
     end
-
-    statements = [] # [ { :key_node, :references, :sql, :values }, ... ]
-
-    a.each do |alias_, clauses|
-      key_node = clauses.first[:subject][:node]
-      table = clauses.first[:map].table
-
-      data = []   # [ [ field, value ], ... ]
-      references = []
-      clauses.each do |clause|
-        node = clause[:object][:node]
-        if new[key_node] or update[node]
-          data.push([
-            clause[:object][:field],
-            substitute_literals(v[node])
-          ])
-
-          references.push(node) if new[node]
-        end
-      end
-
-      if new[key_node] and table != 'Resource'
-        data.unshift [ 'id', v[key_node] ]
-        # when id is inserted, insert_resource() trigger does nothing
-        sql = "INSERT INTO #{table} ("+
-          data.collect {|field, value| field }.join(', ')+') VALUES ('+
-          data.collect {|field, value| value }.join(', ')+')'
-
-      elsif data.length > 0
-        sql = "UPDATE #{table} SET "+
-          data.collect {|field, value| field+' = '+value.to_s }.join(', ')+
-          " WHERE id = #{v[key_node]}"
-      end
-
-      if sql
-        sql, values = substitute_parameters(sql, params)
-        statements.push({
-          :key_node => key_node,
-          :references => references,
-          :sql => sql,
-          :values => values
-        })
-      end
-    end
-
-    run_ordered_statements(statements)
-
-    return insert.collect {|node| v[node] }
+    a
   end
-
-  private
 
   # calculate subgraph of query pattern that is reachable from _node_
   #
@@ -464,11 +454,93 @@ class SquishAssert < SquishQuery
     end until stop
     return w
   end
+end
+
+
+class SquishAssertValue
+  def initialize(value, new, updated)
+    @value = value
+    @new = new
+    @updated = updated
+  end
+
+  attr_reader :value
+
+  # true if node was inserted into resource during value generation and a
+  # corresponding record should be inserted into an internal resource table
+  # later
+  #
+  def new?
+    @new
+  end
+
+  # true if the node value is set in the UPDATE section of the Squish statement
+  #
+  def updated?
+    @updated
+  end
+end
+
+
+class SquishAssertStatement
+  include Debug
+
+  def initialize(clauses, values)
+    @key_node = clauses.first[:subject][:node]
+    @table = clauses.first[:map].table.to_sym
+
+    key = values[@key_node]
+
+    @params = {}
+    @references = []
+    clauses.each do |clause|
+      node = clause[:object][:node]
+      v = values[node]
+
+      if key.new? or v.updated?
+        field = clause[:object][:field]
+        @params[field.to_sym] = v.value
+
+        # when subproperty value is updated, update the qualifier as well
+        map = clause[:map]
+        if map.subproperty_of
+          @params[ RdfPropertyMap.qualifier_field(field).to_sym ] = values[map.property].value
+        elsif map.superproperty?
+          @params[ RdfPropertyMap.qualifier_field(field).to_sym ] = nil
+        end
+
+        @references.push(node) if v.new?
+      end
+    end
+
+    if key.new? and @table != :resource
+      # when id is inserted, insert_resource() trigger does nothing
+      @action = :insert
+      @params[:id] = key.value
+
+    elsif not @params.empty?
+      @action = :update
+      @filter = {:id => key.value}
+    end
+
+    debug { self.inspect }
+  end
+
+  attr_reader :key_node, :references, :action
+
+  def run(db)
+    if @action
+      ds = db[@table]
+      ds = ds.filter(@filter) if @filter
+      debug { :insert == @action ? ds.insert_sql(@params) : ds.update_sql(@params) }
+      ds.send(@action, @params)
+    end
+  end
 
   # make sure mutually referencing records are inserted in the right order
   #
-  def run_ordered_statements(statements)
-    statements = statements.sort_by {|s| s[:references].size }
+  def SquishAssertStatement.run_ordered_statements(db, statements)
+    statements = statements.sort_by {|s| s.references.size }
     inserted = []
 
     progress = true
@@ -477,9 +549,9 @@ class SquishAssert < SquishQuery
 
       0.upto(statements.size - 1) do |i|
         s = statements[i]
-        if (s[:references] - inserted).empty?
-          @db.do(s[:sql], *s[:values])
-          inserted.push(s[:key_node])
+        if (s.references - inserted).empty?
+          s.run(db)
+          inserted.push(s.key_node)
           statements.delete_at(i)
           progress = true
           break
@@ -487,9 +559,9 @@ class SquishAssert < SquishQuery
       end
     end
 
-    progress or raise ProgrammingError,
+    statements.empty? or raise ProgrammingError,
       "Failed to resolve mutual references of inserted resources: " +
-      statements.collect {|s| s[:sql] + ' -- ' + s[:references].join(', ') }.join('; ')
+      statements.collect {|s| s.key_node + ' -- ' + s.references.join(', ') }.join('; ')
   end
 end
 

@@ -52,7 +52,7 @@ class RdfPropertyMap
   # name of the field into which the property is mapped
   #
   # if property range is not a literal, the field is a reference to the
-  # Resource table
+  # resource table
   #
   attr_reader :field
 
@@ -64,6 +64,14 @@ class RdfPropertyMap
   # this subproperty
   #
   attr_accessor :subproperty_of
+
+  attr_writer :superproperty
+
+  # set to +true+ if this property has subproperties
+  #
+  def superproperty?
+    @superproperty or false
+  end
 
   # name of transitive closure table for a transitive property
   #
