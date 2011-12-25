@@ -2,11 +2,11 @@
 
 == Synopsis
 
-  require 'dbi'
+  require 'sequel'
   require 'yaml'
   require 'graffiti'
 
-  db = DBI.connect(dsn, user, password)
+  db = Sequel.connect(:adapter => 'pg', :database = > dbname)
   config = File.open('rdf.yaml') {|f| YAML.load(f.read) }
   store = Graffiti::Store.new(db, config)
 
@@ -27,7 +27,7 @@ database.
 
 == Requirements
 
-Graffiti uses Ruby/DBI to connect to database backend and provides a
+Graffiti uses Sequel to connect to database backend and provides a
 DBI-like interface to run RDF queries in Squish query language from Ruby
 applications. SynCache object cache is used for in-process cache of
 translated Squish queries.
@@ -120,7 +120,7 @@ doc/examples/.
 
 == Copying
 
-  Copyright (c) 2002-2009  Dmitry Borodaenko <angdraug@debian.org>
+  Copyright (c) 2002-2011  Dmitry Borodaenko <angdraug@debian.org>
 
   This program is free software.
   You can distribute/modify this program under the terms of the GNU
