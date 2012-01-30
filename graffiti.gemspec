@@ -14,6 +14,7 @@ Graffiti uses Sequel to connect to database backend and provides a DBI-like
 interface to run RDF queries in Squish query language from Ruby applications.
     EOF
   spec.files       = `git ls-files`.split "\n"
+  spec.test_files  = Dir['test/ts_*.rb']
   spec.license     = 'GPL3+'
   spec.add_dependency('syncache')
   spec.add_dependency('sequel')
