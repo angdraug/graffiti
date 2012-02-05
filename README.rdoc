@@ -10,11 +10,13 @@
   config = File.open('rdf.yaml') {|f| YAML.load(f.read) }
   store = Graffiti::Store.new(db, config)
 
-  store.select_all(%{
+  data = store.fetch(%{
     SELECT ?date, ?title
     WHERE (dc::date ?r ?date FILTER ?date >= :start)
           (dc::title ?r ?title)
     ORDER BY ?date DESC}, 10, 0, :start => Time.now - 24*3600)
+
+  puts data.first[:title]
 
 
 == Description
