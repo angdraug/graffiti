@@ -46,19 +46,19 @@ LITERAL ?rating >= -1
 ORDER BY ?rating DESC
 USING PRESET NS}
 
-    sql = "SELECT DISTINCT c.id AS msg, c.title AS title, b.full_name AS name, d.published_date AS date, a.rating AS rating
-FROM statement AS a
-INNER JOIN message AS c ON (c.id = a.subject)
-INNER JOIN member AS b ON (c.creator = b.id)
-INNER JOIN resource AS d ON (c.id = d.id)
-INNER JOIN resource AS e ON (a.object = e.id) AND (e.uriref = 't' AND e.label = 'http://www.nongnu.org/samizdat/rdf/schema#Quality')
-INNER JOIN resource AS f ON (a.predicate = f.id) AND (f.uriref = 't' AND f.label = 'http://purl.org/dc/elements/1.1/relation')
-WHERE (a.id IS NOT NULL)
-AND (d.published_date IS NOT NULL)
-AND (b.full_name IS NOT NULL)
-AND (c.title IS NOT NULL)
-AND (a.rating >= -1)
-ORDER BY a.rating DESC"
+    sql = "SELECT DISTINCT b.id AS msg, b.title AS title, a.full_name AS name, c.published_date AS date, d.rating AS rating
+FROM member AS a
+INNER JOIN message AS b ON (b.creator = a.id)
+INNER JOIN resource AS c ON (b.id = c.id)
+INNER JOIN statement AS d ON (b.id = d.subject)
+INNER JOIN resource AS e ON (d.predicate = e.id) AND (e.uriref = 't' AND e.label = 'http://purl.org/dc/elements/1.1/relation')
+INNER JOIN resource AS f ON (d.object = f.id) AND (f.uriref = 't' AND f.label = 'http://www.nongnu.org/samizdat/rdf/schema#Quality')
+WHERE (c.published_date IS NOT NULL)
+AND (a.full_name IS NOT NULL)
+AND (d.id IS NOT NULL)
+AND (b.title IS NOT NULL)
+AND (d.rating >= -1)
+ORDER BY d.rating DESC"
 
     test_squish_select(squish, sql) do |query|
       assert_equal %w[?msg ?title ?name ?date ?rating], query.nodes
@@ -187,21 +187,21 @@ EXCEPT (s::inReplyTo ?msg ?parent)
        (dc::creator ?version_of 1)
 ORDER BY ?date DESC}
 
-    sql = "SELECT DISTINCT b.id AS msg, b.published_date AS date
-FROM resource AS b
+    sql = "SELECT DISTINCT a.id AS msg, a.published_date AS date
+FROM resource AS a
 LEFT JOIN (
-    SELECT b.id AS _field_f
-    FROM message AS a
-    INNER JOIN resource AS b ON (b.part_of = a.id)
-    INNER JOIN resource AS c ON (b.part_of_subproperty = c.id) AND (c.uriref = 't' AND c.label = 'http://purl.org/dc/terms/isVersionOf')
-    WHERE (a.creator = 1)
-) AS _subquery_a ON (b.id = _subquery_a._field_f)
-LEFT JOIN resource AS d ON (b.part_of_subproperty = d.id) AND (d.uriref = 't' AND d.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
-WHERE (b.published_date IS NOT NULL)
-AND (b.id IS NOT NULL)
-AND (_subquery_a._field_f IS NULL)
+    SELECT a.id AS _field_c
+    FROM message AS b
+    INNER JOIN resource AS a ON (a.part_of = b.id)
+    INNER JOIN resource AS c ON (a.part_of_subproperty = c.id) AND (c.uriref = 't' AND c.label = 'http://purl.org/dc/terms/isVersionOf')
+    WHERE (b.creator = 1)
+) AS _subquery_a ON (a.id = _subquery_a._field_c)
+LEFT JOIN resource AS d ON (a.part_of_subproperty = d.id) AND (d.uriref = 't' AND d.label = 'http://www.nongnu.org/samizdat/rdf/schema#inReplyTo')
+WHERE (a.published_date IS NOT NULL)
+AND (a.id IS NOT NULL)
+AND (_subquery_a._field_c IS NULL)
 AND (d.id IS NULL)
-ORDER BY b.published_date DESC"
+ORDER BY a.published_date DESC"
 
     test_squish_select(squish, sql)
   end
@@ -219,20 +219,20 @@ EXCEPT (dct::isPartOf ?msg ?parent)
 GROUP BY ?msg
 ORDER BY max(?date) DESC}
 
-    sql = "SELECT DISTINCT a.subject AS msg, max(b.published_date)
-FROM statement AS a
-INNER JOIN resource AS b ON (a.id = b.id)
-INNER JOIN message AS c ON (a.subject = c.id) AND (c.hidden = 'f')
-INNER JOIN resource AS d ON (a.subject = d.id)
-INNER JOIN resource AS e ON (a.predicate = e.id) AND (e.uriref = 't' AND e.label = 'http://purl.org/dc/elements/1.1/relation')
-WHERE (c.hidden IS NOT NULL)
-AND (b.published_date IS NOT NULL)
-AND (a.object IS NOT NULL)
-AND (a.rating IS NOT NULL)
-AND (d.part_of IS NULL)
-AND ((a.rating >= 1.5))
-GROUP BY a.subject
-ORDER BY max(b.published_date) DESC"
+    sql = "SELECT DISTINCT c.subject AS msg, max(d.published_date)
+FROM message AS a
+INNER JOIN statement AS c ON (c.subject = a.id) AND (c.rating >= 1.5)
+INNER JOIN resource AS b ON (c.subject = b.id)
+INNER JOIN resource AS d ON (c.id = d.id)
+INNER JOIN resource AS e ON (c.predicate = e.id) AND (e.uriref = 't' AND e.label = 'http://purl.org/dc/elements/1.1/relation')
+WHERE (d.published_date IS NOT NULL)
+AND (a.hidden IS NOT NULL)
+AND (b.part_of IS NULL)
+AND (c.rating IS NOT NULL)
+AND (c.object IS NOT NULL)
+AND ((a.hidden = 'f'))
+GROUP BY c.subject
+ORDER BY max(d.published_date) DESC"
 
     test_squish_select(squish, sql)
   end
@@ -272,18 +272,17 @@ OPTIONAL (dct::isPartOf ?tag ?supertag TRANSITIVE)
 LITERAL ?tag = 1 OR ?supertag = 1
 ORDER BY ?date DESC}
 
-    sql = "SELECT DISTINCT a.subject AS msg, b.published_date AS date
-FROM statement AS a
-INNER JOIN resource AS b ON (a.subject = b.id)
-INNER JOIN resource AS d ON (a.predicate = d.id) AND (d.uriref = 't' AND d.label = 'http://purl.org/dc/elements/1.1/relation')
-LEFT JOIN part AS c ON (a.object = c.id)
-WHERE (a.id IS NOT NULL)
-AND (b.published_date IS NOT NULL)
-AND (a.rating IS NOT NULL)
-AND (b.part_of IS NULL)
-AND ((a.rating > 0))
-AND (a.object = 1 OR c.part_of = 1)
-ORDER BY b.published_date DESC"
+    sql = "SELECT DISTINCT b.subject AS msg, a.published_date AS date
+FROM resource AS a
+INNER JOIN statement AS b ON (b.subject = a.id) AND (b.rating > 0)
+INNER JOIN resource AS d ON (b.predicate = d.id) AND (d.uriref = 't' AND d.label = 'http://purl.org/dc/elements/1.1/relation')
+LEFT JOIN part AS c ON (b.object = c.id)
+WHERE (a.published_date IS NOT NULL)
+AND (a.part_of IS NULL)
+AND (b.rating IS NOT NULL)
+AND (b.id IS NOT NULL)
+AND (b.object = 1 OR c.part_of = 1)
+ORDER BY a.published_date DESC"
 
     test_squish_select(squish, sql)
   end
@@ -387,9 +386,7 @@ ORDER BY c.published_date DESC"
   end
 
   def normalize(sql)
-    # alias labels and where conditions may be reordered, but the query string
-    # length should remain the same
-    sql.size
+    sql
   end
 
   def create_mock_db

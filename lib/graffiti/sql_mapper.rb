@@ -211,9 +211,11 @@ class SqlMapper
     refine_ambiguous_properties
 
     debug do
-      @nodes.each do |node, n|
-        debug %{#{node}: #{n[:bind_mode]} #{n[:colors].inspect}}
+      @nodes.keys.sort.each do |node|
+        n = @nodes[node]
+        debug %{map_predicates #{node}: #{n[:bind_mode]} #{n[:colors].inspect}}
       end
+      nil
     end
   end
 
@@ -386,14 +388,14 @@ class SqlMapper
   # be refined based on other occurences of this node in other query clauses.
   #
   def refine_ambiguous_properties
-    @nodes.each_value do |n|
-      map = n[:positions]
+    @nodes.keys.sort.each do |node|
+      map = @nodes[node][:positions]
 
       map.each_with_index do |p, i|
         big = @clauses[ p[:clause] ][ p[:role] ]
         next if big.size <= 1   # no refining needed
 
-        debug { n + ': ' + big.inspect }
+        debug { 'refine_ambiguous_properties ' + @nodes[node] + ': ' + big.inspect }
 
         (i + 1).upto(map.size - 1) do |j|
           small_p = map[j]
@@ -447,9 +449,9 @@ class SqlMapper
   end
 
   def define_relation_aliases
-    @nodes.each do |node, n|
-
-      positions = n[:positions]
+    @nodes.keys.sort.each do |node|
+      positions = @nodes[node][:positions]
+      debug { 'define_relation_aliases ' + positions.inspect }
 
       # go through all clauses with this node in subject position
       positions.each_with_index do |p, i|
@@ -508,8 +510,8 @@ class SqlMapper
     @jc = []
     @bindings = {}
 
-    @nodes.each do |node, n|
-      positions = n[:positions]
+    @nodes.keys.sort.each do |node|
+      positions = @nodes[node][:positions]
 
       # node binding
       first = positions.first
@@ -527,7 +529,7 @@ class SqlMapper
         unless @bindings[node].include?(binding2)
           @bindings[node].push(binding2)
           @jc.push([binding, binding2, node])
-          n[:ground] = true
+          @nodes[node][:ground] = true
         end
       end
 
@@ -569,13 +571,14 @@ class SqlMapper
             "Invalid node '#{node}' should never occur at this point"
         end
 
-        n[:ground] = true
+        @nodes[node][:ground] = true
       end
     end
 
     debug do
-      @aliases.each {|alias_name, a| debug %{#{alias_name}: #{a.inspect}} }
-      @jc.each {|jc| debug jc.inspect }
+      @aliases.keys.sort.each {|a| debug %{transform #{a}: #{@aliases[a].inspect}} }
+      @jc.each {|jc| debug 'transform ' + jc.inspect }
+      nil
     end
   end
 
@@ -583,7 +586,7 @@ class SqlMapper
   #
   def generate_tables_and_conditions
     main_path, seen = jc_subgraph_path(:must_bind)
-    debug { main_path.inspect }
+    debug { 'generate_tables_and_conditions ' + main_path.inspect }
 
     main_path and not main_path.empty? or raise RuntimeError,
       'Failed to find table aliases for main query'
@@ -598,7 +601,7 @@ class SqlMapper
         sub_path, new = jc_subgraph_path(bind_mode, seen)
         break if sub_path.nil? or sub_path.empty?
 
-        debug { sub_path.inspect }
+        debug { 'generate_tables_and_conditions ' + sub_path.inspect }
 
         sub_query, sub_join = sub_path.partition {|a,| main_path.assoc(a).nil? }
         # fixme: make sure that sub_join is not empty
@@ -719,9 +722,9 @@ class SqlMapper
   end
 
   def find_alias(bind_mode, seen = {})
-    @aliases.each do |alias_name, a|
-      next if seen[alias_name] or a[:bind_mode] != bind_mode
-      return alias_name
+    @aliases.keys.sort.each do |a|
+      next if seen[a] or @aliases[a][:bind_mode] != bind_mode
+      return a
     end
 
     nil
@@ -734,7 +737,8 @@ class SqlMapper
     conditions = []
     ground_nodes = @global_filter.scan(SquishQuery::BN_SCAN)
 
-    @nodes.each do |node, n|
+    @nodes.keys.sort.each do |node|
+      n = @nodes[node]
       next if (n[:ground] or ground_nodes.include?(node))
 
       expression =
@@ -800,7 +804,7 @@ class SqlMapper
     wrapped = {}
     sub_path.each {|a,| wrapped[a] = true }
 
-    @nodes.each do |node, n|
+    @nodes.keys.sort.each do |node|
       @bindings[node].each do |b|
         if wrapped[b.alias] and rebind[b].nil?
           field = '_field_' << field_count
@@ -822,7 +826,7 @@ class SqlMapper
     select_nodes = {}
 
     # update the global filter
-    @nodes.each do |node, n|
+    @nodes.keys.sort.each do |node|
       if r = rebind[ @bindings[node].first ]
         @global_filter.gsub!(/#{Regexp.escape(node)}\b/) do
           select_nodes[ @bindings[node].first ] = true

@@ -84,7 +84,7 @@ class SquishQuery
         "Bad query initialization parameter class: #{query.class}"
     end
 
-    debug { query }
+    debug { 'SquishQuery ' + query }
     @query = query   # keep original string
     query = query.dup
 
@@ -391,7 +391,7 @@ class SquishAssert < SquishQuery
                 :strings => @strings
               }
             )
-            debug { db[s.to_sql, params].select_sql }
+            debug { 'resource_values ' + db[s.to_sql, params].select_sql }
             found = db.fetch(s.to_sql, params).first
           end
 
@@ -401,7 +401,7 @@ class SquishAssert < SquishQuery
           else
             table = @sql_mapper.clauses[ subject_position[:clause] ][:map].table
             value = db[:resource].insert(:label => table)
-            debug { db[:resource].insert_sql(:label => table) }
+            debug { 'resource_values ' + db[:resource].insert_sql(:label => table) }
             new = true unless 'resource' == table
           end
         end
@@ -413,16 +413,16 @@ class SquishAssert < SquishQuery
           value = found[:id]
         else
           value = db[:resource].insert(uriref)
-          debug { db[:resource].insert_sql(uriref) }
+          debug { 'resource_values ' + db[:resource].insert_sql(uriref) }
         end
       end
 
-      debug { node + ' = ' + value.inspect }
+      debug { 'resource_values ' + node + ' = ' + value.inspect }
       v = SquishAssertValue.new(value, new, @update.has_key?(node))
       values[node] = v
     end
 
-    debug { values.inspect }
+    debug { 'resource_values ' + 'resource_values ' + values.inspect }
     values
   end
 
@@ -523,7 +523,7 @@ class SquishAssertStatement
       @filter = {:id => key.value}
     end
 
-    debug { self.inspect }
+    debug { 'SquishAssertStatement ' + self.inspect }
   end
 
   attr_reader :key_node, :references, :action

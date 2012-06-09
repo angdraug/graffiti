@@ -22,8 +22,8 @@ module Debug
   def debug(message = nil)
     return unless DEBUG
 
+    message = yield if block_given?
     log message if message
-    log yield if block_given?
   end
 
   def log(message)
