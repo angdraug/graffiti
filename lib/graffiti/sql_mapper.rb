@@ -563,6 +563,7 @@ class SqlMapper
           end
 
           @aliases[r][:filter].push SqlExpression.new(
+            # FIXME: replace 't' with database-specific boolean literal
             SqlNodeBinding.new(r, 'uriref'), '=', "'t'", 'AND',
             SqlNodeBinding.new(r, 'label'), '=', %{'#{node}'})
 

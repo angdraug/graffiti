@@ -390,7 +390,7 @@ ORDER BY c.published_date DESC"
   end
 
   def create_mock_db
-    db = Sequel.sqlite(:quote_identifiers => false)
+    db = Sequel.sqlite(:quote_identifiers => false, :integer_booleans => false)
 
     db.create_table(:resource) do
       primary_key :id
@@ -440,13 +440,5 @@ ORDER BY c.published_date DESC"
     end
 
     db
-  end
-
-  def create_mock_member(db)
-    db[:member].insert(
-      :login => 'test',
-      :full_name => 'test',
-      :email => 'test@localhost'
-    )
   end
 end
