@@ -16,6 +16,9 @@ interface to run RDF queries in Squish query language from Ruby applications.
   spec.files       = `git ls-files`.split "\n"
   spec.test_files  = Dir['test/ts_*.rb']
   spec.license     = 'GPL3+'
-  spec.add_dependency('syncache')
-  spec.add_dependency('sequel')
+  spec.add_dependency 'syncache'
+  spec.add_dependency 'sequel'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'test-unit'
+  spec.add_development_dependency 'sqlite3'
 end
