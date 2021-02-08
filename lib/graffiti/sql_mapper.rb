@@ -829,7 +829,7 @@ class SqlMapper
     # update the global filter
     @nodes.keys.sort.each do |node|
       if r = rebind[ @bindings[node].first ]
-        @global_filter.gsub!(/#{Regexp.escape(node)}\b/) do
+        @global_filter = @global_filter.gsub(/#{Regexp.escape(node)}\b/) do
           select_nodes[ @bindings[node].first ] = true
         r.to_s
         end

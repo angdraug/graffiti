@@ -82,10 +82,8 @@ WHERE (dc::creator ?msg 1)
       (s::content ?msg ?content)
 USING dc FOR #{@ns['dc']}
       s FOR #{@ns['s']}}
-    begin
-      query = SquishAssert.new(@store.config, query_text)
-    rescue
-      assert false, "SquishAssert initialization raised #{$!.class}: #{$!}"
+    query = assert_nothing_raised do
+      SquishAssert.new(@store.config, query_text)
     end
 
     # query parser
@@ -359,24 +357,18 @@ ORDER BY c.published_date DESC"
   private
 
   def test_squish_select(squish, sql)
-    begin
-      query = SquishSelect.new(@store.config, squish)
-    rescue
-      assert false, "SquishSelect initialization raised #{$!.class}: #{$!}"
+    query = assert_nothing_raised do
+      SquishSelect.new(@store.config, squish)
     end
 
     yield query if block_given?
 
     # query result
-    begin
-      sql1 = @store.select(query)
-    rescue
-      assert false, "select with pre-parsed query raised #{$!.class}: #{$!}"
+    sql1 = assert_nothing_raised do
+      @store.select(query)
     end
-    begin
-      sql2 = @store.select(squish)
-    rescue
-      assert false, "select with query text raised #{$!.class}: #{$!}"
+    sql2 = assert_nothing_raised do
+      @store.select(squish)
     end
     assert sql1 == sql2
 

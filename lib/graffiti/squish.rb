@@ -101,7 +101,7 @@ class SquishQuery
       @group, @order, @order_dir, @ns = match.to_a.collect {|m| m.to_s }
     match = nil
     @key.upcase!
-    @order_dir.upcase!
+    @order_dir = @order_dir.upcase   # can't mutate: ASC/DESC comes frozen from QUERY
 
     # namespaces
     # todo: validate ns
